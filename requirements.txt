@@ -1,0 +1,15 @@
+aniso8601==9.0.1
+click==7.1.2
+Flask
+Flask-JWT
+Flask-JWT-Extended
+Flask-RESTful
+Flask-SQLAlchemy
+itsdangerous
+Jinja2
+MarkupSafe
+PyJWT
+pytz
+six
+SQLAlchemy
+Werkzeug
