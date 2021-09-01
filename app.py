@@ -107,7 +107,7 @@ api.add_resource(UserLogout, '/logout')
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
 api.add_resource(CompanyLogin, '/companylogin')
-api.add_resource(CompanyTokenRefresh, '/refresh')
+api.add_resource(CompanyTokenRefresh, '/companyrefresh')
 api.add_resource(CompanyLogout, '/companylogout')
 
 if __name__ == '__main__':
