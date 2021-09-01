@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
-# from flask_cors import CORS
+from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
@@ -10,6 +10,7 @@ from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogo
 
 
 app = Flask(__name__)
+CORS(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://karthik:karthikkaran@database-1.c3gbi1q1hlzf.us-east-2.rds.amazonaws.com:5432/otaupdatedb"
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
