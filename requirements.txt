@@ -13,4 +13,4 @@ pytz
 six
 SQLAlchemy
 Werkzeug
-Flask-Cors==3.0.10
+Flask-Cors

@@ -6,11 +6,12 @@ from flask_cors import CORS
 from db import db
 from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerfication
 
 
 app = Flask(__name__)
 CORS(app)
+
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://karthik:karthikkaran@database-1.c3gbi1q1hlzf.us-east-2.rds.amazonaws.com:5432/otaupdatedb"
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -103,6 +104,7 @@ api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
 api.add_resource(TokenRefresh, '/refresh')
 api.add_resource(UserLogout, '/logout')
+api.add_resource(emailVerfication, '/confirm-email/<int:id>/<string:token>')
 
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')

@@ -7,10 +7,20 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models.user import UserModel
 from blacklist import BLACKLIST
 
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+
+import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+# app = Flask(__name__)
+# user.config.from_pyfile('../config.cfg')
+# app.config.from_pyfile('config.cfg')
 # _user_parser = reqparse.RequestParser()
 
-
+s = URLSafeTimedSerializer('Thisisasecret!')
 class UserRegister(Resource):
+
+
     def post(self):
         _user_parser = reqparse.RequestParser()
 
@@ -62,16 +72,39 @@ class UserRegister(Resource):
         elif UserModel.find_by_phonenumber(data['email']):
             return {"message": "A user with that phonenumber already exists"}, 400
         else:
+            
+            
+            token = s.dumps(data['email'], salt='email-confirm')
 
-            user_phonenumber = data['phonenumber']
-            rand_number = random.randint(1111, 9999)
-            # data['tempotp'] = rand_number
             user = UserModel(**data)
-            # user.send_otp()
+            user.token = token
             user.save_to_db()
+            print(user.id)
+            user.send_verification_email(user.id, data['email'], token)
+
+            # print(token)
 
             return {"message": "User created successfully."}, 201
 
+    
+class emailVerfication(Resource):
+    def get(self, id, token):
+        try:
+            email = s.loads(token, salt='email-confirm', max_age=300)
+        except SignatureExpired:
+            return '<h1>The token is expired!</h1>'
+        user = UserModel.find_by_id(id)
+        if safe_str_cmp(token, user.token):
+            user.status = 2
+            user.token = ""
+            user.save_to_db()
+            return '<h1>Verfied<h1>'
+
+        return '<h1>Not verified<h1>'
+        # return '<h1>The token works!</h1>'
+        
+        
+    
 
 # class UserResendOTP(Resource):
 #     def post(self):
@@ -118,34 +151,6 @@ class User(Resource):
         return {'message': 'User deleted.'}, 200
 
 
-class UserConfirmation(Resource):
-    def post(self):
-        _user_parser = reqparse.RequestParser()
-
-        _user_parser.add_argument('phonenumber',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
-
-        _user_parser.add_argument('tempotp',
-                                  type=int,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
-        data = _user_parser.parse_args()
-        user = UserModel.find_by_phonenumber(data['phonenumber'])
-        usertempotpdb = str(user.tempotp)
-        usertempotpuser = str(data['tempotp'])
-        if user and safe_str_cmp(usertempotpdb, usertempotpuser):
-            user.status = 2
-
-            user.save_to_db()
-
-            return {"message": "Account verified", "status": user.status}, 200
-
-        return {"message": "Invalid OTP"}, 401
-
 
 class UserLogin(Resource):
     def post(self):
@@ -191,10 +196,14 @@ class UserLogin(Resource):
                         "status": 3
                     }, 200
                 elif(user.status == 1):
-                    rand_number = random.randint(1111, 9999)
-                    user.tempotp = rand_number
+                    token = s.dumps(user['email'], salt='email-confirm')
+
+                    # user = UserModel(**data)
+                    user.token = token
                     user.save_to_db()
-                    user.send_otp()
+                    print(user.id)
+                    user.send_verification_email(user.id, user['email'], token)
+
 
                     return{"message": "Account not verified", "status": user.status}, 401
             return {"message": "Invalid Credentials!"}, 401
