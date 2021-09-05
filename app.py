@@ -5,7 +5,7 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerfication
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerfication
 
 
@@ -104,13 +104,14 @@ api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
 api.add_resource(TokenRefresh, '/refresh')
 api.add_resource(UserLogout, '/logout')
-api.add_resource(emailVerfication, '/confirm-email/<int:id>/<string:token>')
+api.add_resource(emailVerfication, '/confirm-email/<string:token>')
 
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
 api.add_resource(CompanyLogin, '/companylogin')
 api.add_resource(CompanyTokenRefresh, '/companyrefresh')
 api.add_resource(CompanyLogout, '/companylogout')
+api.add_resource(companyemailVerfication, '/companyconfirm-email/<string:token>')
 
 if __name__ == '__main__':
     db.init_app(app)

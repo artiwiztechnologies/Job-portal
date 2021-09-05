@@ -9,9 +9,9 @@ from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
-import smtplib, ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+# import smtplib, ssl
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
 # app = Flask(__name__)
 # user.config.from_pyfile('../config.cfg')
 # app.config.from_pyfile('config.cfg')
@@ -39,19 +39,9 @@ class UserRegister(Resource):
                                   required=True,
                                   help="This field cannot be blank."
                                   )
-        _user_parser.add_argument('address',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
         _user_parser.add_argument('password',
                                   type=str,
                                   required=True,
-                                  help="This field cannot be blank."
-                                  )
-        _user_parser.add_argument('photoURL',
-                                  type=str,
-                                  required=False,
                                   help="This field cannot be blank."
                                   )
         _user_parser.add_argument('active',
@@ -59,6 +49,24 @@ class UserRegister(Resource):
                                   required=True,
                                   help="This field cannot be blank."
                                   )
+        _user_parser.add_argument('location',
+                                  type=str,
+                                  required=False,
+                                  default="",
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('profession',
+                                    type=str,
+                                    required=False,
+                                    default="",
+                                    help="This field cannot be blank."
+                                    )
+        _user_parser.add_argument('links',
+                                    type=str,
+                                    required=False,
+                                    default="",
+                                    help="This field cannot be blank."
+                                    )
         _user_parser.add_argument('status',
                                   type=int,
                                   required=True,
@@ -76,11 +84,12 @@ class UserRegister(Resource):
             
             token = s.dumps(data['email'], salt='email-confirm')
 
-            user = UserModel(**data)
-            user.token = token
+            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'])
+            user.status = data['status']
+            user.password = data['password']
             user.save_to_db()
             print(user.id)
-            user.send_verification_email(user.id, data['email'], token)
+            user.send_verification_email(data['email'], token)
 
             # print(token)
 
@@ -88,19 +97,15 @@ class UserRegister(Resource):
 
     
 class emailVerfication(Resource):
-    def get(self, id, token):
+    def get(self, token):
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
+            user = UserModel.find_by_email(email)
+            user.status = 2
+            user.save_to_db()
         except SignatureExpired:
             return '<h1>The token is expired!</h1>'
-        user = UserModel.find_by_id(id)
-        if safe_str_cmp(token, user.token):
-            user.status = 2
-            user.token = ""
-            user.save_to_db()
-            return '<h1>Verfied<h1>'
-
-        return '<h1>Not verified<h1>'
+        return '<h1>Verified<h1>'
         # return '<h1>The token works!</h1>'
         
         
@@ -134,6 +139,46 @@ class User(Resource):
     This resource can be useful when testing our Flask app. We may not want to expose it to public users, but for the
     sake of demonstration in this course, it can be useful when we are manipulating data regarding the users.
     """
+    _user_parser = reqparse.RequestParser()
+
+    _user_parser.add_argument('name',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('phonenumber',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('email',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('location',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('profession',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('links',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    _user_parser.add_argument('jobsApplied',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+    
+
+
     @jwt_required
     def get(self, id):
         print('yes')
@@ -149,6 +194,26 @@ class User(Resource):
             return {'message': 'User Not Found'}, 404
         user.delete_from_db()
         return {'message': 'User deleted.'}, 200
+
+    @jwt_required
+    def put(self, id):
+        data = User._user_parser.parse_args()
+        if not UserModel.find_by_id(id):
+            return {'message': 'User not found.'}, 404
+        user = UserModel.find_by_id(id)
+
+        user.name = data['name']
+        user.phonenumber = data['phonenumber']
+        user.email = data['email']
+        user.location = data['location']
+        user.profession = data['profession']
+        user.jobsApplied = data['jobsApplied']
+        user.links = data['links']
+
+        user.save_to_db()
+
+        return {'message': 'Update successful!'}, 200
+        
 
 
 
@@ -199,10 +264,10 @@ class UserLogin(Resource):
                     token = s.dumps(user['email'], salt='email-confirm')
 
                     # user = UserModel(**data)
-                    user.token = token
+                    # user.token = token
                     user.save_to_db()
                     print(user.id)
-                    user.send_verification_email(user.id, user['email'], token)
+                    user.send_verification_email(user['email'], token)
 
 
                     return{"message": "Account not verified", "status": user.status}, 401

@@ -6,36 +6,48 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# from dotenv import load_dotenv
+# import os
+
+# load_dotenv()
+
+# sender_email = os.getenv("sender_email")
+# password = os.getenv("password")
+
 class UserModel(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     phonenumber = db.Column(db.String(80))
-    photoURL = db.Column(db.String(100))
     email = db.Column(db.String(200))
     password = db.Column(db.String(80))
     active = db.Column(db.Boolean())
-    address = db.Column(db.String())
+    status  = db.Column(db.Integer ) #not verified is 1 and 2 is verified and 3 is admin
     subscription_id = db.Column(db.String())
     expiry_date =  db.Column(db.String())
     created_date = db.Column(db.String())
-    status  = db.Column(db.Integer ) #not verified is 1 and 2 is verified and 3 is admin
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
-    token = db.Column(db.String())
-    # tempotp  = db.Column(db.Integer ) 
+    
+    photoURL = db.Column(db.String(100))
+    profession = db.Column(db.String())
+    location = db.Column(db.String())
+    links = db.Column(db.String())
+    jobsApplied = db.Column(db.String(), default="{'ids': [] }" ) # an array of job ids
+    skills = db.Column(db.String()) # an array of skills
+    about = db.Column(db.String())
+    
 
-
-    def __init__(self, email, password, phonenumber, name, photoURL, address, active, status ):
+    def __init__(self, email, phonenumber, name, location, active, profession, links):
+        
         self.email = email
-        self.password = password
-        self.status = status
+        # self.password = password
         self.phonenumber = phonenumber
-        # self.tempotp = tempotp
         self.name = name
-        self.photoURL = photoURL
-        self.address = address
+        self.location = location
         self.active = active
+        self.profession = profession
+        self.links = links
 
 
     def json(self):
@@ -45,7 +57,10 @@ class UserModel(db.Model):
             'phonenumber': self.phonenumber,
             'name': self.name,
             'photoURL': self.photoURL,
-            'address': self.address,
+            'location': self.location,
+            'profession': self.profession,
+            'links': self.links,
+            'jobsApplied': self.jobsApplied,
             'status': self.status
         }
 
@@ -60,7 +75,7 @@ class UserModel(db.Model):
     # def send_otp(self):
     #     requests.get("http://trans.smsfresh.co/api/sendmsg.php?user=hkartthik97&pass=123456&sender=ARTOTP&phone={}&text=Your verfication code is:{} Dont share this code with anyone.&priority=ndnd&stype=normal".format(self.phonenumber,self.tempotp))
 
-    def send_verification_email(self, id, receiver_email, token):
+    def send_verification_email(self, receiver_email, token):
 
         print("mail")
 
@@ -83,12 +98,12 @@ class UserModel(db.Model):
         <body>
             <p>Hi,<br>
             Click 
-            <a href="http://127.0.0.1:5005/confirm-email/{}/{}" text-decoration="none"> here</a> 
+            <a href="http://127.0.0.1:5005/confirm-email/{}" text-decoration="none"> here</a> 
              to verify.
             </p>
         </body>
         </html>
-        """.format(id, token)
+        """.format(token)
         # print("http://127.0.0.1:5005/confirm-email/", token)
 
         # Turn these into plain/html MIMEText objects
@@ -109,7 +124,7 @@ class UserModel(db.Model):
             )
 
     @classmethod
-    def find_by_username(cls, email):
+    def find_by_email(cls, email):
         return cls.query.filter_by(email=email).first()
 
     @classmethod
