@@ -1,6 +1,7 @@
 from db import db
 import datetime
 import requests
+from flask import Flask, request, url_for
 
 import smtplib, ssl
 from email.mime.text import MIMEText
@@ -33,7 +34,7 @@ class CompanyModel(db.Model):
     companyType = db.Column(db.String())
 
 
-    def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType):
+    def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType, photoURL):
         self.email = email
         self.phonenumber = phonenumber
         self.name = name
@@ -46,6 +47,7 @@ class CompanyModel(db.Model):
         self.links = links
         self.established = established
         self.companyType = companyType
+        self.photoURL = photoURL
 
 
     def json(self):
@@ -73,6 +75,8 @@ class CompanyModel(db.Model):
         password = "8910@tech"
         # receiver_email = receiver_email
 
+        link = url_for('companyemailverification', token=token, _external=True)
+
         message = MIMEMultipart("alternative")
         message["Subject"] = "multipart test"
         message["From"] = sender_email
@@ -88,12 +92,12 @@ class CompanyModel(db.Model):
         <body>
             <p>Hi,<br>
             Click 
-            <a href="http://127.0.0.1:5005/companyconfirm-email/{}" text-decoration="none"> here</a> 
+            <a href="{}" text-decoration="none"> here</a> 
              to verify.
             </p>
         </body>
         </html>
-        """.format(token)
+        """.format(link)
         # print("http://127.0.0.1:5005/confirm-email/", token)
 
         # Turn these into plain/html MIMEText objects

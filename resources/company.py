@@ -7,8 +7,18 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models.company import CompanyModel
 from blacklist import BLACKLIST
 
+from flask import request ,jsonify, send_file,send_from_directory, url_for
+from werkzeug.utils import secure_filename
+import os
+import re
+import json
+
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 s = URLSafeTimedSerializer('Thisisasecret!')
+
+UPLOAD_FOLDER = 'D:/projects/jobs-textile/companyphoto'
+ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
+
 
 class CompanyRegister(Resource):
     def post(self):
@@ -99,7 +109,7 @@ class CompanyRegister(Resource):
 
             token = s.dumps(data['email'], salt='email-confirm')
 
-            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
+            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'], data['photoURL'])
             company.status = data['status']
             company.password = data['password']
             company.save_to_db()
@@ -108,7 +118,7 @@ class CompanyRegister(Resource):
 
             return {"message": "Company created successfully."}, 201
 
-class companyemailVerfication(Resource):
+class companyemailVerification(Resource):
     def get(self, token):
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
@@ -119,6 +129,44 @@ class companyemailVerfication(Resource):
             return '<h1>The token is expired!</h1>'
         return '<h1>Verified<h1>'
 
+class CompanyPhoto(Resource):
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    @jwt_required
+    def post(self):
+        print(request.files)
+        if 'file' not in request.files:
+            return {'message': 'No file uploaded!'}, 404
+        
+        files = request.files.getlist('file')
+        errors = {}
+        success = False
+        # value = rand.randint(0000, 9999)
+        for file in files:
+            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                # phototURL = url_for('/',values=filename,  _external=True)
+                URL = request.url_root[:-1]
+                photoURL = URL+"/company/"+filename
+
+                company_id = get_jwt_identity()
+                company = CompanyModel.find_by_id(company_id)
+                company.photoURL = photoURL
+                company.save_to_db()
+
+                return {'message': 'success', 'photoURL': photoURL}
+
+            else:
+                return {'message': 'error'}
+
+class getCompanyPhoto(Resource):
+    def get(self, path):
+        print (path)
+        try:
+            return send_from_directory(UPLOAD_FOLDER, path=path, as_attachment=True)
+        except FileNotFoundError:
+            return {'message':'File not Found'},404
 
 # class UserResendOTP(Resource):
 #     def post(self):
@@ -230,6 +278,7 @@ class Company(Resource):
         company.about = data['about']
         company.companyType = data['companyType']
         company.links = data['links']
+        company.photoURL = data['photoURL']
 
         company.save_to_db()
 

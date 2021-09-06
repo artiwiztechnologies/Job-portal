@@ -2,12 +2,23 @@ from flask_restful import Resource, reqparse
 from werkzeug.security import safe_str_cmp
 import random
 import requests
+
+from flask import request ,jsonify, send_file,send_from_directory, url_for
+from werkzeug.utils import secure_filename
+import os
+import re
+import json
+# from request import url_root
+
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
 from models.user import UserModel
 from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+
+UPLOAD_FOLDER = 'D:/projects/jobs-textile/candidatephoto'
+ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
 
 # import smtplib, ssl
 # from email.mime.text import MIMEText
@@ -84,7 +95,7 @@ class UserRegister(Resource):
             
             token = s.dumps(data['email'], salt='email-confirm')
 
-            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'])
+            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'], data['photoURL'])
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
@@ -96,7 +107,7 @@ class UserRegister(Resource):
             return {"message": "User created successfully."}, 201
 
     
-class emailVerfication(Resource):
+class emailVerification(Resource):
     def get(self, token):
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
@@ -108,7 +119,46 @@ class emailVerfication(Resource):
         return '<h1>Verified<h1>'
         # return '<h1>The token works!</h1>'
         
+class UserPhoto(Resource):
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    @jwt_required
+    def post(self):
+        print(request.files)
+        if 'file' not in request.files:
+            return {'message': 'No file uploaded!'}, 404
         
+        # print(user_id)
+        files = request.files.getlist('file')
+        errors = {}
+        success = False
+        # value = rand.randint(0000, 9999)
+        for file in files:
+            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                # URL = url_for('userphoto', token=filename,  _external=True)
+                URL = request.url_root[:-1]
+                print(URL, 146)
+                photoURL = URL+"/user/"+filename
+
+                user_id = get_jwt_identity()
+                user = UserModel.find_by_id(user_id)
+                user.photoURL = photoURL
+                user.save_to_db()
+
+                return {'message': 'success', 'photoURL': photoURL}
+
+            else:
+                return {'message': 'error'}
+
+class getUserPhoto(Resource):
+    def get(self, path):
+        print (path)
+        try:
+            return send_from_directory(UPLOAD_FOLDER, path=path, as_attachment=True)
+        except FileNotFoundError:
+            return {'message':'File not Found'},404
     
 
 # class UserResendOTP(Resource):
@@ -209,6 +259,7 @@ class User(Resource):
         user.profession = data['profession']
         user.jobsApplied = data['jobsApplied']
         user.links = data['links']
+        user.photoURL = data['photoURL']
 
         user.save_to_db()
 

@@ -1,6 +1,7 @@
 from db import db
 import datetime
 import requests
+from flask import Flask, request, url_for
 
 import smtplib, ssl
 from email.mime.text import MIMEText
@@ -38,7 +39,7 @@ class UserModel(db.Model):
     about = db.Column(db.String())
     
 
-    def __init__(self, email, phonenumber, name, location, active, profession, links):
+    def __init__(self, email, phonenumber, name, location, active, profession, links,phototURL):
         
         self.email = email
         # self.password = password
@@ -48,6 +49,7 @@ class UserModel(db.Model):
         self.active = active
         self.profession = profession
         self.links = links
+        self.photoURL = phototURL
 
 
     def json(self):
@@ -83,6 +85,14 @@ class UserModel(db.Model):
         password = "8910@tech"
         # receiver_email = receiver_email
 
+        # msg = Message('Confirm Email', sender=sender_email, recipients=receiver_email)
+
+        link = url_for('emailverification', token=token, _external=True)
+
+        # msg.body = 'Your link is {}'.format(link)
+
+        # mail.send(msg)
+
         message = MIMEMultipart("alternative")
         message["Subject"] = "multipart test"
         message["From"] = sender_email
@@ -98,13 +108,12 @@ class UserModel(db.Model):
         <body>
             <p>Hi,<br>
             Click 
-            <a href="http://127.0.0.1:5005/confirm-email/{}" text-decoration="none"> here</a> 
+            <a href="{}" text-decoration="none"> here</a> 
              to verify.
             </p>
         </body>
         </html>
-        """.format(token)
-        # print("http://127.0.0.1:5005/confirm-email/", token)
+        """.format(link)
 
         # Turn these into plain/html MIMEText objects
         part1 = MIMEText(text, "plain")

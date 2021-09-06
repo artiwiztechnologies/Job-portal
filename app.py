@@ -5,8 +5,8 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerfication
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerfication
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto
 
 
 app = Flask(__name__)
@@ -104,14 +104,18 @@ api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
 api.add_resource(TokenRefresh, '/refresh')
 api.add_resource(UserLogout, '/logout')
-api.add_resource(emailVerfication, '/confirm-email/<string:token>')
+api.add_resource(emailVerification, '/confirm-email/<string:token>')
+api.add_resource(UserPhoto, '/uploaduserphoto')
+api.add_resource(getUserPhoto, '/user/<string:path>')
 
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
 api.add_resource(CompanyLogin, '/companylogin')
 api.add_resource(CompanyTokenRefresh, '/companyrefresh')
 api.add_resource(CompanyLogout, '/companylogout')
-api.add_resource(companyemailVerfication, '/companyconfirm-email/<string:token>')
+api.add_resource(companyemailVerification, '/companyconfirm-email/<string:token>')
+api.add_resource(CompanyPhoto, '/uploadcompanyphoto')
+api.add_resource(getCompanyPhoto, '/company/<string:path>')
 
 if __name__ == '__main__':
     db.init_app(app)
