@@ -297,7 +297,8 @@ class UserLogin(Resource):
                         'access_token': access_token,
                         'refresh_token': refresh_token,
                         'user_id': user.id,
-                        "email": user.email
+                        "email": user.email,
+                        "status": user.status
                     }, 200
                 elif(user.status == 3):
                     access_token = create_access_token(
@@ -311,13 +312,14 @@ class UserLogin(Resource):
                         "status": 3
                     }, 200
                 elif(user.status == 1):
-                    token = s.dumps(user['email'], salt='email-confirm')
+                    # user = UserModel.find_by_phonenumber(data['phonenumber'])
+                    token = s.dumps(user.email, salt='email-confirm')
 
                     # user = UserModel(**data)
                     # user.token = token
                     user.save_to_db()
                     print(user.id)
-                    user.send_verification_email(user['email'], token)
+                    user.send_verification_email(user.email, token)
 
 
                     return{"message": "Account not verified", "status": user.status}, 401
