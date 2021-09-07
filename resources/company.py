@@ -356,10 +356,14 @@ class CompanyLogin(Resource):
                         "status": 3
                     }, 200
                 elif(company.status == 1):
-                    rand_number = random.randint(1111, 9999)
-                    company.tempotp = rand_number
+                    token = s.dumps(company.email, salt='email-confirm')
+
+                    # user = UserModel(**data)
+                    # user.token = token
                     company.save_to_db()
-                    # company.send_otp()
+                    # print(user.id)
+                    company.send_verification_email(company.email, token)
+
 
                     return{"message": "Account not verified", "status": company.status}, 401
             return {"message": "Invalid Credentials!"}, 401
