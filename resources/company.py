@@ -109,7 +109,7 @@ class CompanyRegister(Resource):
 
             token = s.dumps(data['email'], salt='email-confirm')
 
-            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'], data['photoURL'])
+            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
             company.status = data['status']
             company.password = data['password']
             company.save_to_db()
@@ -278,7 +278,6 @@ class Company(Resource):
         company.about = data['about']
         company.companyType = data['companyType']
         company.links = data['links']
-        company.photoURL = data['photoURL']
 
         company.save_to_db()
 

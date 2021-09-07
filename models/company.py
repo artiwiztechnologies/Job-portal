@@ -24,7 +24,7 @@ class CompanyModel(db.Model):
     status = db.Column(db.Integer)
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
 
-    photoURL = db.Column(db.String())
+    photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
     comapanySize = db.Column(db.Integer)
     about = db.Column(db.String())
@@ -34,7 +34,7 @@ class CompanyModel(db.Model):
     companyType = db.Column(db.String())
 
 
-    def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType, photoURL):
+    def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType):
         self.email = email
         self.phonenumber = phonenumber
         self.name = name
@@ -47,7 +47,6 @@ class CompanyModel(db.Model):
         self.links = links
         self.established = established
         self.companyType = companyType
-        self.photoURL = photoURL
 
 
     def json(self):

@@ -30,7 +30,7 @@ class UserModel(db.Model):
     created_date = db.Column(db.String())
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
     
-    photoURL = db.Column(db.String(100))
+    photoURL = db.Column(db.String(100), default="abcd")
     profession = db.Column(db.String())
     location = db.Column(db.String())
     links = db.Column(db.String())
@@ -39,7 +39,7 @@ class UserModel(db.Model):
     about = db.Column(db.String())
     
 
-    def __init__(self, email, phonenumber, name, location, active, profession, links,phototURL):
+    def __init__(self, email, phonenumber, name, location, active, profession, links):
         
         self.email = email
         # self.password = password
@@ -49,7 +49,6 @@ class UserModel(db.Model):
         self.active = active
         self.profession = profession
         self.links = links
-        self.photoURL = phototURL
 
 
     def json(self):

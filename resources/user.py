@@ -95,7 +95,7 @@ class UserRegister(Resource):
             
             token = s.dumps(data['email'], salt='email-confirm')
 
-            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'], data['photoURL'])
+            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'])
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
@@ -259,7 +259,6 @@ class User(Resource):
         user.profession = data['profession']
         user.jobsApplied = data['jobsApplied']
         user.links = data['links']
-        user.photoURL = data['photoURL']
 
         user.save_to_db()
 
