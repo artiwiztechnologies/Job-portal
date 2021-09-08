@@ -63,7 +63,8 @@ class CompanyModel(db.Model):
             'jobsPosted': self.jobsPosted,
             'companyType': self.companyType,
             'links': self.links,
-            'status': self.status
+            'status': self.status,
+            'type': self.__tablename__
         }
 
     def send_verification_email(self, receiver_email, token):

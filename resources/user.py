@@ -18,7 +18,9 @@ from blacklist import BLACKLIST
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
 UPLOAD_FOLDER = 'D:/projects/jobs-textile/candidatephoto'
+RESUME_FOLDER = 'D:/projects/jobs-textile/resume'
 ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
+ALLOWED_EXTENSIONS2 = set(['docx','doc', 'pdf'])
 
 # import smtplib, ssl
 # from email.mime.text import MIMEText
@@ -120,8 +122,6 @@ class emailVerification(Resource):
         # return '<h1>The token works!</h1>'
         
 class UserPhoto(Resource):
-    def allowed_file(filename):
-        return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
     @jwt_required
     def post(self):
         print(request.files)
@@ -160,6 +160,44 @@ class getUserPhoto(Resource):
         except FileNotFoundError:
             return {'message':'File not Found'},404
     
+
+class Resume(Resource):
+    @jwt_required
+    def post(self):
+        print(request.files)
+        if 'file' not in request.files:
+            return {'message': 'No file uploaded!'}, 404
+        
+        # print(user_id)
+        files = request.files.getlist('file')
+        errors = {}
+        # value = rand.randint(0000, 9999)
+        for file in files:
+            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS2:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(RESUME_FOLDER, filename))
+                # URL = url_for('userphoto', token=filename,  _external=True)
+                URL = request.url_root[:-1]
+                print(URL, 146)
+                resume = URL+"/user/resume/"+filename
+
+                user_id = get_jwt_identity()
+                user = UserModel.find_by_id(user_id)
+                user.resume = resume
+                user.save_to_db()
+
+                return {'message': 'success'}
+
+            else:
+                return {'message': 'error'}
+
+class getResume(Resource):
+    def get(self, path):
+        print (path)
+        try:
+            return send_from_directory(RESUME_FOLDER, path=path, as_attachment=True)
+        except FileNotFoundError:
+            return {'message':'File not Found'},404
 
 # class UserResendOTP(Resource):
 #     def post(self):
@@ -298,7 +336,8 @@ class UserLogin(Resource):
                         'refresh_token': refresh_token,
                         'user_id': user.id,
                         "email": user.email,
-                        "status": user.status
+                        "status": user.status,
+                        'type': user.__tablename__
                     }, 200
                 elif(user.status == 3):
                     access_token = create_access_token(

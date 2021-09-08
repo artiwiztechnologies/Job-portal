@@ -37,6 +37,7 @@ class UserModel(db.Model):
     jobsApplied = db.Column(db.String(), default="{'ids': [] }" ) # an array of job ids
     skills = db.Column(db.String()) # an array of skills
     about = db.Column(db.String())
+    resume = db.Column(db.String(100), default="abcd")
     
 
     def __init__(self, email, phonenumber, name, location, active, profession, links):
@@ -62,7 +63,9 @@ class UserModel(db.Model):
             'profession': self.profession,
             'links': self.links,
             'jobsApplied': self.jobsApplied,
-            'status': self.status
+            'status': self.status,
+            'resume': self.resume,
+            'type': self.__tablename__
         }
 
     def save_to_db(self):

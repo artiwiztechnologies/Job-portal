@@ -342,7 +342,9 @@ class CompanyLogin(Resource):
                         'access_token': access_token,
                         'refresh_token': refresh_token,
                         'company_id': company.id,
-                        "email": company.email
+                        "email": company.email,
+                        'status': company.status,
+                        'type': company.__tablename__
                     }, 200
                 elif(company.status == 3):
                     access_token = create_access_token(

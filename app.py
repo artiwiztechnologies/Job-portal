@@ -6,7 +6,7 @@ from flask_cors import CORS
 from db import db
 from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume
 
 
 app = Flask(__name__)
@@ -107,6 +107,8 @@ api.add_resource(UserLogout, '/logout')
 api.add_resource(emailVerification, '/confirm-email/<string:token>')
 api.add_resource(UserPhoto, '/uploaduserphoto')
 api.add_resource(getUserPhoto, '/user/<string:path>')
+api.add_resource(Resume, '/user/upload-resume')
+api.add_resource(getResume, '/user/resume/<string:path>')
 
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
