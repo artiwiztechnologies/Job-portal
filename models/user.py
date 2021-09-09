@@ -7,13 +7,16 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+
+
+
 # from dotenv import load_dotenv
 # import os
 
 # load_dotenv()
 
-# sender_email = os.getenv("sender_email")
-# password = os.getenv("password")
+# sender_email = os.getenv("SENDER_EMAIL")
+# password = os.getenv("PASSWORD")
 
 class UserModel(db.Model):
     __tablename__ = 'users'
@@ -40,7 +43,7 @@ class UserModel(db.Model):
     resume = db.Column(db.String(100), default="abcd")
     
 
-    def __init__(self, email, phonenumber, name, location, active, profession, links):
+    def __init__(self, email, phonenumber, name, location, active, profession, links, about):
         
         self.email = email
         # self.password = password
@@ -50,6 +53,7 @@ class UserModel(db.Model):
         self.active = active
         self.profession = profession
         self.links = links
+        self.about = about
 
 
     def json(self):
@@ -65,7 +69,8 @@ class UserModel(db.Model):
             'jobsApplied': self.jobsApplied,
             'status': self.status,
             'resume': self.resume,
-            'type': self.__tablename__
+            'type': self.__tablename__,
+            'about': self.about
         }
 
     def save_to_db(self):

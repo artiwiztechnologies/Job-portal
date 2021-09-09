@@ -16,7 +16,7 @@ import json
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 s = URLSafeTimedSerializer('Thisisasecret!')
 
-UPLOAD_FOLDER = 'D:/projects/jobs-textile/companyphoto'
+UPLOAD_FOLDER = 'companyphoto'
 ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
 
 

@@ -17,18 +17,11 @@ from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
-UPLOAD_FOLDER = 'D:/projects/jobs-textile/candidatephoto'
-RESUME_FOLDER = 'D:/projects/jobs-textile/resume'
+UPLOAD_FOLDER = 'candidatephoto'
+RESUME_FOLDER = 'resume'
 ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
 ALLOWED_EXTENSIONS2 = set(['docx','doc', 'pdf'])
 
-# import smtplib, ssl
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
-# app = Flask(__name__)
-# user.config.from_pyfile('../config.cfg')
-# app.config.from_pyfile('config.cfg')
-# _user_parser = reqparse.RequestParser()
 
 s = URLSafeTimedSerializer('Thisisasecret!')
 class UserRegister(Resource):
@@ -85,6 +78,12 @@ class UserRegister(Resource):
                                   required=True,
                                   help="This field cannot be blank."
                                   )
+        _user_parser.add_argument('about',
+                                  type=str,
+                                  required=False,
+                                  default="",
+                                  help="This field cannot be blank."
+                                  )
 
         data = _user_parser.parse_args()
         print(data['phonenumber'])
@@ -92,19 +91,14 @@ class UserRegister(Resource):
             return {"message": "A user with that phone already exists"}, 400
         elif UserModel.find_by_phonenumber(data['email']):
             return {"message": "A user with that phonenumber already exists"}, 400
-        else:
-            
-            
+        else:         
             token = s.dumps(data['email'], salt='email-confirm')
 
-            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'])
+            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'], data['about'])
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
-            print(user.id)
             user.send_verification_email(data['email'], token)
-
-            # print(token)
 
             return {"message": "User created successfully."}, 201
 
@@ -176,7 +170,6 @@ class Resume(Resource):
             if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS2:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(RESUME_FOLDER, filename))
-                # URL = url_for('userphoto', token=filename,  _external=True)
                 URL = request.url_root[:-1]
                 print(URL, 146)
                 resume = URL+"/user/resume/"+filename
@@ -199,30 +192,7 @@ class getResume(Resource):
         except FileNotFoundError:
             return {'message':'File not Found'},404
 
-# class UserResendOTP(Resource):
-#     def post(self):
-#         _user_parser = reqparse.RequestParser()
-#         _user_parser.add_argument('phonenumber',
-#                                   type=str,
-#                                   required=True,
-#                                   help="This field cannot be blank."
-#                                   )
-#         data = _user_parser.parse_args()
-#         user = UserModel.find_by_phonenumber(data['phonenumber'])
-
-#         if user:
-#             user_phonenumber = data['phonenumber']
-#             rand_number = random.randint(1111, 9999)
-#             user.tempotp = rand_number
-#             user.save_to_db()
-#             user.send_otp()
-#             return {"message": "OTP resent successfully."}, 200
-#         else:
-#             return {"message": "User not found."}, 400
-
-
 class User(Resource):
-    # _user_parser = reqparse.RequestParser()
     """
     This resource can be useful when testing our Flask app. We may not want to expose it to public users, but for the
     sake of demonstration in this course, it can be useful when we are manipulating data regarding the users.
@@ -264,7 +234,12 @@ class User(Resource):
                                 required=True,
                                 help="This field cannot be blank."
                                 )
-    
+    _user_parser.add_argument('about',
+                                type=str,
+                                required=True,
+                                help="This field cannot be blank."
+                                )
+
 
 
     @jwt_required
@@ -297,6 +272,7 @@ class User(Resource):
         user.profession = data['profession']
         user.jobsApplied = data['jobsApplied']
         user.links = data['links']
+        user.about = data['about']
 
         user.save_to_db()
 
@@ -321,9 +297,6 @@ class UserLogin(Resource):
         data = _user_parser.parse_args()
 
         user = UserModel.find_by_phonenumber(data['phonenumber'])
-        # print(user.password, data['password'])
-        # print(safe_str_cmp(user.password, data['password']))
-        # this is what the `authenticate()` function did in security.py
         if user:
             if safe_str_cmp(user.password, data['password']):
                 # identity= is what the identity() function did in security.py—now stored in the JWT
@@ -351,7 +324,6 @@ class UserLogin(Resource):
                         "status": 3
                     }, 200
                 elif(user.status == 1):
-                    # user = UserModel.find_by_phonenumber(data['phonenumber'])
                     token = s.dumps(user.email, salt='email-confirm')
 
                     # user = UserModel(**data)
