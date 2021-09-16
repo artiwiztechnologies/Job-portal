@@ -129,6 +129,16 @@ class companyemailVerification(Resource):
             return '<h1>The token is expired!</h1>'
         return '<h1>Verified<h1>'
 
+class resendCompanyEmail(Resource):
+    def get(self, id):
+        company = CompanyModel.find_by_id(id)
+        if not company:
+            return {'message': 'Company not found!!'}, 400
+        token = s.dumps(company.email, salt='email-confirm')
+        company.send_verification_email(company.email, token)
+
+        return {'message': 'Verification mail sent!'}, 200
+
 class CompanyPhoto(Resource):
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
@@ -136,7 +146,7 @@ class CompanyPhoto(Resource):
     def post(self):
         print(request.files)
         if 'file' not in request.files:
-            return {'message': 'No file uploaded!'}, 404
+            return {'message': 'No file uploaded!'}, 400
         
         files = request.files.getlist('file')
         errors = {}
@@ -154,11 +164,26 @@ class CompanyPhoto(Resource):
                 company = CompanyModel.find_by_id(company_id)
                 company.photoURL = photoURL
                 company.save_to_db()
-
-                return {'message': 'success', 'photoURL': photoURL}
+                success = True
 
             else:
-                return {'message': 'error'}
+                errors[file.filename] = 'File type is not allowed'
+
+        if success and errors:
+            errors['message'] = 'File(s) successfully uploaded'
+            # errors['photoURL'] = photoURL
+            resp = jsonify(errors)
+            resp.status_code = 500
+            return resp
+        if success:
+            resp = jsonify({'message' : 'Files successfully uploaded'})
+            resp.status_code = 201
+            return {'message': "Success", "photoURL" : photoURL}
+        else:
+            resp = jsonify(errors)
+            resp.status_code = 500
+            return resp
+
 
 class getCompanyPhoto(Resource):
     def get(self, path):
@@ -367,7 +392,7 @@ class CompanyLogin(Resource):
                     company.send_verification_email(company.email, token)
 
 
-                    return{"message": "Account not verified", "status": company.status}, 401
+                    return{"message": "Account not verified", "status": company.status,"id": company.id}, 401
             return {"message": "Invalid Credentials!"}, 401
         return {"message": "Company not found!", "status": 0}, 404
 
