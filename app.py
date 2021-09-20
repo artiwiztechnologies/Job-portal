@@ -7,7 +7,7 @@ from db import db
 from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail
-
+from resources.jobs import addJob, Job, JobsList, companyJobs
 
 app = Flask(__name__)
 CORS(app)
@@ -120,6 +120,11 @@ api.add_resource(companyemailVerification, '/companyconfirm-email/<string:token>
 api.add_resource(resendCompanyEmail, '/resendcompanyemail/<int:id>')
 api.add_resource(CompanyPhoto, '/uploadcompanyphoto')
 api.add_resource(getCompanyPhoto, '/company/<string:path>')
+
+api.add_resource(addJob, '/post-job')
+api.add_resource(Job, '/job/<int:id>')
+api.add_resource(JobsList, '/jobs-list')
+api.add_resource(companyJobs, '/company-jobs/<int:id>')
 
 if __name__ == '__main__':
     db.init_app(app)

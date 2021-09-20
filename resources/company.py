@@ -5,6 +5,7 @@ import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
 from models.company import CompanyModel
+# from models.jobs import JobsModel
 from blacklist import BLACKLIST
 
 from flask import request ,jsonify, send_file,send_from_directory, url_for
@@ -418,3 +419,13 @@ class CompanyTokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
+
+
+# class companyJobs(Resource):
+#     @jwt_required
+#     def get(self, id):
+#         try:
+#             jobs = [job.json() for job in JobsModel.find_jobs(id)]
+#             return {'Jobs': jobs}
+#         except:
+#             return {'message': "Error"}, 500
