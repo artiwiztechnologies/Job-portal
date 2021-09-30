@@ -2,11 +2,14 @@ from db import db
 import datetime
 import requests
 
+from models.company import CompanyModel
+
 class JobsModel(db.Model):
     __tablename__ = "jobs"
 
     id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer)
+    # photoURL = db.Column(db.String())
     title = db.Column(db.String(80))
     description = db.Column(db.String(500))
     applicants = db.Column(db.String())
@@ -29,8 +32,10 @@ class JobsModel(db.Model):
         self.career_level = career_level
         self.role = role
         self.skills = skills
+        # self.photoURL = photoURl
 
     def json(self):
+        # company = CompanyModel.find_by_id(self.company_id)
         return {
             "id": self.id,
             "title": self.title,
@@ -43,7 +48,8 @@ class JobsModel(db.Model):
             "career_level": self.career_level,
             "role": self.role,
             "skills": self.skills,
-            "date": self.date
+            "date": self.date,
+            "photoURL": CompanyModel.find_by_id(self.company_id).photoURL
         }
 
     def save_to_db(self):

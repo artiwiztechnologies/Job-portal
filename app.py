@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask import render_template
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -97,6 +98,11 @@ def revoked_token_callback():
         'error': 'token_revoked'
     }), 401
 
+
+# @app.route("/about")
+# class HTML():
+# def returnHTML():
+#     return render_template("test.html")
 
 
 api.add_resource(UserRegister, '/register')

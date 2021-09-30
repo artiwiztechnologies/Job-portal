@@ -4,11 +4,18 @@ import random
 import requests
 
 from flask import request ,jsonify, send_file,send_from_directory, url_for
+from flask import render_template
 from werkzeug.utils import secure_filename
 import os
 import re
 import json
 # from request import url_root
+
+# from HTML import returnHTML
+# import returnHTML
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
@@ -105,15 +112,25 @@ class UserRegister(Resource):
     
 class emailVerification(Resource):
     def get(self, token):
+        def returnHTML():
+            print('Hello')
+            return "<h1>Hello</h1>"
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
             user = UserModel.find_by_email(email)
+            print(user.status)
             user.status = 2
             user.save_to_db()
+            return user.json()
         except SignatureExpired:
-            return '<h1>The token is expired!</h1>'
-        return '<h1>Verified<h1>'
+            return "<h1>The token is expired!</h1>"
+        return "<h1>verified</h1>"
+        # test = "<h1>Hello</h1>"
+        # rend = MIMEText(test, "html")
+        # returnHTML()
+        # return rend
         # return '<h1>The token works!</h1>'
+
 
 class resendEmail(Resource):
     def get(self, id):
@@ -196,7 +213,9 @@ class Resume(Resource):
                 file.save(os.path.join(RESUME_FOLDER, filename))
                 URL = request.url_root[:-1]
                 print(URL, 146)
-                resume = URL+"/user/resume/"+filename
+                # resume = URL+"/user/resume/"+filename
+
+                resume = url_for('resume', filename=filename)
 
                 user_id = get_jwt_identity()
                 user = UserModel.find_by_id(user_id)
@@ -212,7 +231,7 @@ class getResume(Resource):
     def get(self, path):
         print (path)
         try:
-            return send_from_directory(RESUME_FOLDER, path=path, as_attachment=True)
+            return send_from_directory(RESUME_FOLDER, path=path, as_preview=True)
         except FileNotFoundError:
             return {'message':'File not Found'},404
 
