@@ -8,7 +8,7 @@ class JobsModel(db.Model):
     __tablename__ = "jobs"
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     # photoURL = db.Column(db.String())
     title = db.Column(db.String(80))
     description = db.Column(db.String(500))

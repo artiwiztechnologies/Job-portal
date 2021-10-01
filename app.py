@@ -9,6 +9,7 @@ from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail
 from resources.jobs import addJob, Job, JobsList, companyJobs
+from resources.applications import newApplication, Application, ByJobID, ByUserID
 
 app = Flask(__name__)
 CORS(app)
@@ -131,6 +132,12 @@ api.add_resource(addJob, '/post-job')
 api.add_resource(Job, '/job/<int:id>')
 api.add_resource(JobsList, '/jobs-list')
 api.add_resource(companyJobs, '/company-jobs/<int:id>')
+
+api.add_resource(newApplication, '/apply/<int:job_id>')
+api.add_resource(Application, '/application/<int:id>')
+api.add_resource(ByJobID, '/get-users/<int:job_id>')
+api.add_resource(ByUserID, '/get-jobs/<int:user_id>')
+
 
 if __name__ == '__main__':
     db.init_app(app)
