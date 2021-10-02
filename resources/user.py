@@ -3,16 +3,12 @@ from werkzeug.security import safe_str_cmp
 import random
 import requests
 
-from flask import request ,jsonify, send_file,send_from_directory, url_for
+from flask import request ,jsonify, send_file,send_from_directory, url_for, redirect
 from flask import render_template
 from werkzeug.utils import secure_filename
 import os
 import re
 import json
-# from request import url_root
-
-# from HTML import returnHTML
-# import returnHTML
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -112,24 +108,17 @@ class UserRegister(Resource):
     
 class emailVerification(Resource):
     def get(self, token):
-        def returnHTML():
-            print('Hello')
-            return "<h1>Hello</h1>"
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
             user = UserModel.find_by_email(email)
-            print(user.status)
+
             user.status = 2
             user.save_to_db()
-            return user.json()
+
         except SignatureExpired:
             return "<h1>The token is expired!</h1>"
-        return "<h1>verified</h1>"
-        # test = "<h1>Hello</h1>"
-        # rend = MIMEText(test, "html")
-        # returnHTML()
-        # return rend
-        # return '<h1>The token works!</h1>'
+
+        return redirect("https://jobportalfrontend.vercel.app/", code=302)
 
 
 class resendEmail(Resource):
@@ -149,16 +138,13 @@ class UserPhoto(Resource):
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
         
-        # print(user_id)
         files = request.files.getlist('file')
         errors = {}
         success = False
-        # value = rand.randint(0000, 9999)
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(UPLOAD_FOLDER, filename))
-                # URL = url_for('userphoto', token=filename,  _external=True)
                 URL = request.url_root[:-1]
                 print(URL, 146)
                 photoURL = URL+"/user/"+filename
@@ -174,7 +160,6 @@ class UserPhoto(Resource):
         
         if success and errors:
             errors['message'] = 'File(s) successfully uploaded'
-            # errors['photoURL'] = photoURL
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
@@ -203,17 +188,12 @@ class Resume(Resource):
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 404
         
-        # print(user_id)
         files = request.files.getlist('file')
         errors = {}
-        # value = rand.randint(0000, 9999)
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS2:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(RESUME_FOLDER, filename))
-                URL = request.url_root[:-1]
-                print(URL, 146)
-                # resume = URL+"/user/resume/"+filename
 
                 resume = url_for('resume', filename=filename)
 
@@ -342,7 +322,6 @@ class UserLogin(Resource):
         user = UserModel.find_by_phonenumber(data['phonenumber'])
         if user:
             if safe_str_cmp(user.password, data['password']):
-                # identity= is what the identity() function did in security.py—now stored in the JWT
                 if(user.status == 2):
                     access_token = create_access_token(
                         identity=user.id, fresh=True)
@@ -369,8 +348,6 @@ class UserLogin(Resource):
                 elif(user.status == 1):
                     token = s.dumps(user.email, salt='email-confirm')
 
-                    # user = UserModel(**data)
-                    # user.token = token
                     user.save_to_db()
                     print(user.id)
                     user.send_verification_email(user.email, token)

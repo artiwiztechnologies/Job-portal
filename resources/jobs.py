@@ -17,11 +17,6 @@ class addJob(Resource):
                             required=True,
                             help="This field cannot be blank."
                             )
-        # parser.add_argument('Comapny_id',
-        #                     type=int,
-        #                     required=True,
-        #                     help="This field cannot be blank."
-        #                     )
         parser.add_argument('description',
                             type=str,
                             required=True,

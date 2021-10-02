@@ -5,10 +5,10 @@ import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
 from models.company import CompanyModel
-# from models.jobs import JobsModel
+
 from blacklist import BLACKLIST
 
-from flask import request ,jsonify, send_file,send_from_directory, url_for
+from flask import request, jsonify, send_file, send_from_directory, url_for, redirect
 from werkzeug.utils import secure_filename
 import os
 import re
@@ -18,7 +18,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 s = URLSafeTimedSerializer('Thisisasecret!')
 
 UPLOAD_FOLDER = 'companyphoto'
-ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 
 class CompanyRegister(Resource):
@@ -26,79 +26,77 @@ class CompanyRegister(Resource):
         _company_parser = reqparse.RequestParser()
 
         _company_parser.add_argument('name',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('phonenumber',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('email',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('password',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('active',
-                                  type=bool,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=bool,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('location',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('about',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('links',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('about',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('established',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('companyType',
-                                  type=str,
-                                  required=False,
-                                  default="",
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=False,
+                                     default="",
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('companySize',
-                                  type=int,
-                                  required=False,
-                                  default=int(0),
-                                  help="This field cannot be blank."
-                                  )
+                                     type=int,
+                                     required=False,
+                                     default=int(0),
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('status',
-                                  type=int,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
-        
-        
+                                     type=int,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
 
         data = _company_parser.parse_args()
 
@@ -110,14 +108,15 @@ class CompanyRegister(Resource):
 
             token = s.dumps(data['email'], salt='email-confirm')
 
-            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
+            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'],
+                                   data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
             company.status = data['status']
             company.password = data['password']
             company.save_to_db()
-            # print(user.id)
             company.send_verification_email(data['email'], token)
 
             return {"message": "Company created successfully."}, 201
+
 
 class companyemailVerification(Resource):
     def get(self, token):
@@ -128,7 +127,8 @@ class companyemailVerification(Resource):
             company.save_to_db()
         except SignatureExpired:
             return '<h1>The token is expired!</h1>'
-        return '<h1>Verified<h1>'
+        return redirect("https://jobportalfrontend.vercel.app/", code=302)
+
 
 class resendCompanyEmail(Resource):
     def get(self, id):
@@ -140,24 +140,24 @@ class resendCompanyEmail(Resource):
 
         return {'message': 'Verification mail sent!'}, 200
 
+
 class CompanyPhoto(Resource):
     def allowed_file(filename):
-        return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
     @jwt_required
     def post(self):
         print(request.files)
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
-        
+
         files = request.files.getlist('file')
         errors = {}
         success = False
-        # value = rand.randint(0000, 9999)
         for file in files:
-            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS:
+            if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(UPLOAD_FOLDER, filename))
-                # phototURL = url_for('/',values=filename,  _external=True)
                 URL = request.url_root[:-1]
                 photoURL = URL+"/company/"+filename
 
@@ -172,14 +172,13 @@ class CompanyPhoto(Resource):
 
         if success and errors:
             errors['message'] = 'File(s) successfully uploaded'
-            # errors['photoURL'] = photoURL
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
         if success:
-            resp = jsonify({'message' : 'Files successfully uploaded'})
+            resp = jsonify({'message': 'Files successfully uploaded'})
             resp.status_code = 201
-            return {'message': "Success", "photoURL" : photoURL}
+            return {'message': "Success", "photoURL": photoURL}
         else:
             resp = jsonify(errors)
             resp.status_code = 500
@@ -188,87 +187,67 @@ class CompanyPhoto(Resource):
 
 class getCompanyPhoto(Resource):
     def get(self, path):
-        print (path)
+        print(path)
         try:
             return send_from_directory(UPLOAD_FOLDER, path=path, as_attachment=True)
         except FileNotFoundError:
-            return {'message':'File not Found'},404
+            return {'message': 'File not Found'}, 404
 
-# class UserResendOTP(Resource):
-#     def post(self):
-#         _user_parser = reqparse.RequestParser()
-#         _user_parser.add_argument('phonenumber',
-#                                   type=str,
-#                                   required=True,
-#                                   help="This field cannot be blank."
-#                                   )
-#         data = _user_parser.parse_args()
-#         user = UserModel.find_by_phonenumber(data['phonenumber'])
-
-#         if user:
-#             user_phonenumber = data['phonenumber']
-#             rand_number = random.randint(1111, 9999)
-#             user.tempotp = rand_number
-#             user.save_to_db()
-#             user.send_otp()
-#             return {"message": "OTP resent successfully."}, 200
-#         else:
-#             return {"message": "User not found."}, 400
 
 class Company(Resource):
     _company_parser = reqparse.RequestParser()
 
     _company_parser.add_argument('name',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('phonenumber',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('email',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('location',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('about',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('links',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('about',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('established',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('companyType',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                                 type=str,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
     _company_parser.add_argument('companySize',
-                                type=int,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
-    
+                                 type=int,
+                                 required=True,
+                                 help="This field cannot be blank."
+                                 )
+
     """
     This resource can be useful when testing our Flask app. We may not want to expose it to public users, but for the
     sake of demonstration in this course, it can be useful when we are manipulating data regarding the users.
@@ -288,7 +267,7 @@ class Company(Resource):
             return {'message': 'User Not Found'}, 404
         company.delete_from_db()
         return {'message': 'User deleted.'}, 200
-    
+
     @jwt_required
     def put(self, id):
         data = Company._company_parser.parse_args()
@@ -308,58 +287,26 @@ class Company(Resource):
         company.save_to_db()
 
         return {'message': 'Update successful!'}, 200
-     
 
-# class CompanyConfirmation(Resource):
-#     def post(self):
-#         _company_parser = reqparse.RequestParser()
-
-#         _company_parser.add_argument('phonenumber',
-#                                   type=str,
-#                                   required=True,
-#                                   help="This field cannot be blank."
-#                                   )
-
-#         _company_parser.add_argument('tempotp',
-#                                   type=int,
-#                                   required=True,
-#                                   help="This field cannot be blank."
-#                                   )
-#         data = _company_parser.parse_args()
-#         company = CompanyModel.find_by_phonenumber(data['phonenumber'])
-#         companytempotpdb = str(user.tempotp)
-#         companytempotpuser = str(data['tempotp'])
-#         if company and safe_str_cmp(companytempotpdb, companytempotpuser):
-#             company.status = 2
-
-#             company.save_to_db()
-
-#             return {"message": "Account verified", "status": company.status}, 200
-
-#         return {"message": "Invalid OTP"}, 401
 
 class CompanyLogin(Resource):
     def post(self):
         _company_parser = reqparse.RequestParser()
         _company_parser.add_argument('phonenumber',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         _company_parser.add_argument('password',
-                                  type=str,
-                                  required=True,
-                                  help="This field cannot be blank."
-                                  )
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
         data = _company_parser.parse_args()
 
         company = CompanyModel.find_by_phonenumber(data['phonenumber'])
-        # print(company.password, data['password'])
-        # print(safe_str_cmp(company.password, data['password']))
-        # this is what the `authenticate()` function did in security.py
         if company:
             if safe_str_cmp(company.password, data['password']):
-                # identity= is what the identity() function did in security.py—now stored in the JWT
                 if(company.status == 2):
                     access_token = create_access_token(
                         identity=company.id, fresh=True)
@@ -386,24 +333,21 @@ class CompanyLogin(Resource):
                 elif(company.status == 1):
                     token = s.dumps(company.email, salt='email-confirm')
 
-                    # user = UserModel(**data)
-                    # user.token = token
                     company.save_to_db()
-                    # print(user.id)
                     company.send_verification_email(company.email, token)
 
-
-                    return{"message": "Account not verified", "status": company.status,"id": company.id}, 401
+                    return{"message": "Account not verified", "status": company.status, "id": company.id}, 401
             return {"message": "Invalid Credentials!"}, 401
         return {"message": "Company not found!", "status": 0}, 404
+
 
 class CompanyLogout(Resource):
     @jwt_required
     def post(self):
-        # jti is "JWT ID", a unique identifier for a JWT.
         jti = get_raw_jwt()['jti']
         BLACKLIST.add(jti)
         return {"message": "Successfully logged out"}, 200
+
 
 class CompanyTokenRefresh(Resource):
     @jwt_refresh_token_required
@@ -419,13 +363,3 @@ class CompanyTokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
-
-
-# class companyJobs(Resource):
-#     @jwt_required
-#     def get(self, id):
-#         try:
-#             jobs = [job.json() for job in JobsModel.find_jobs(id)]
-#             return {'Jobs': jobs}
-#         except:
-#             return {'message': "Error"}, 500

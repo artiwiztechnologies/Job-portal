@@ -3,7 +3,8 @@ import datetime
 import requests
 from flask import Flask, request, url_for
 
-import smtplib, ssl
+import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -14,6 +15,7 @@ load_dotenv()
 
 sender_email = os.getenv("SENDER_EMAIL")
 password = os.getenv("PASSWORD")
+
 
 class CompanyModel(db.Model):
 
@@ -37,9 +39,9 @@ class CompanyModel(db.Model):
     about = db.Column(db.String())
     links = db.Column(db.String())
     established = db.Column(db.String())
-    jobsPosted = db.Column(db.String(), default="{'ids': [] }") # an array of job ids
+    # an array of job ids
+    jobsPosted = db.Column(db.String(), default="{'ids': [] }")
     companyType = db.Column(db.String())
-
 
     def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType):
         self.email = email
@@ -54,7 +56,6 @@ class CompanyModel(db.Model):
         self.links = links
         self.established = established
         self.companyType = companyType
-
 
     def json(self):
         return {
@@ -76,24 +77,15 @@ class CompanyModel(db.Model):
 
     def send_verification_email(self, receiver_email, token):
 
-        print("mail")
-
-        # sender_email = "t8910ech@gmail.com"
-        # password = "8910@tech"
-        # receiver_email = receiver_email
+        p
 
         link = url_for('companyemailverification', token=token, _external=True)
 
         message = MIMEMultipart("alternative")
-        message["Subject"] = "multipart test"
+        message["Subject"] = "Verfication email."
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # text = """\
-        # Hi,
-        # How are you?
-        # Real Python has many great tutorials:
-        # www.realpython.com"""
         html = """\
         <html>
         <body>
@@ -105,18 +97,11 @@ class CompanyModel(db.Model):
         </body>
         </html>
         """.format(link)
-        # print("http://127.0.0.1:5005/confirm-email/", token)
 
-        # Turn these into plain/html MIMEText objects
-        # part1 = MIMEText(text, "plain")
         part2 = MIMEText(html, "html")
 
-        # Add HTML/plain-text parts to MIMEMultipart message
-        # The email client will try to render the last part first
-        # message.attach(part1)
         message.attach(part2)
 
-        # Create secure connection with server and send email
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
             server.login(sender_email, password)

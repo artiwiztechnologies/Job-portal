@@ -100,12 +100,6 @@ def revoked_token_callback():
     }), 401
 
 
-# @app.route("/about")
-# class HTML():
-# def returnHTML():
-#     return render_template("test.html")
-
-
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
@@ -123,7 +117,8 @@ api.add_resource(Company, '/company/<int:id>')
 api.add_resource(CompanyLogin, '/companylogin')
 api.add_resource(CompanyTokenRefresh, '/companyrefresh')
 api.add_resource(CompanyLogout, '/companylogout')
-api.add_resource(companyemailVerification, '/companyconfirm-email/<string:token>')
+api.add_resource(companyemailVerification,
+                 '/companyconfirm-email/<string:token>')
 api.add_resource(resendCompanyEmail, '/resendcompanyemail/<int:id>')
 api.add_resource(CompanyPhoto, '/uploadcompanyphoto')
 api.add_resource(getCompanyPhoto, '/company/<string:path>')

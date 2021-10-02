@@ -16,7 +16,7 @@ class newApplication(Resource):
             return {'message': "Job not found."}, 404   
         data = {}
         data['user_id'] = get_jwt_identity()
-        # if ApplicationsModel.find_by_user_id_one(data['user_id']) and ApplicationsModel.find_by_job_id_one(job_id) and (ApplicationsModel.find_by_user_id_one(data['user_id']).id is ApplicationsModel.find_by_job_id_one(job_id).id):
+        
         if ApplicationsModel.find_by_job_user(job_id, data['user_id']):    
             return {'message': 'Already applied to this job!'}, 400
         else:
