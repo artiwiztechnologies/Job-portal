@@ -77,8 +77,6 @@ class CompanyModel(db.Model):
 
     def send_verification_email(self, receiver_email, token):
 
-        p
-
         link = url_for('companyemailverification', token=token, _external=True)
 
         message = MIMEMultipart("alternative")

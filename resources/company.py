@@ -142,12 +142,15 @@ class resendCompanyEmail(Resource):
 
 
 class CompanyPhoto(Resource):
-    def allowed_file(filename):
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
     @jwt_required
     def post(self):
-        print(request.files)
+        # print(request.files)
+        def delete_photo(EXT):
+            user_id = get_jwt_identity()
+            photo = str(company_id)+"."+EXT
+            os.remove(UPLOAD_FOLDER+"/"+photo)
+
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
 
@@ -156,12 +159,26 @@ class CompanyPhoto(Resource):
         success = False
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
-                filename = secure_filename(file.filename)
+                company_id = get_jwt_identity()
+
+                # filename = secure_filename(file.filename)
+                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+                print(ext)
+                # filename = str(user_id)+".png"
+
+                filename = str(company_id)+"."+ext
+                for EXT in ALLOWED_EXTENSIONS:
+                    path = str(company_id)+"."+EXT
+                    try:
+                        send_from_directory(UPLOAD_FOLDER, path=path)
+                        print(EXT)
+                        delete_photo(EXT)
+                    except:
+                        print(False)
                 file.save(os.path.join(UPLOAD_FOLDER, filename))
                 URL = request.url_root[:-1]
                 photoURL = URL+"/company/"+filename
 
-                company_id = get_jwt_identity()
                 company = CompanyModel.find_by_id(company_id)
                 company.photoURL = photoURL
                 company.save_to_db()
@@ -183,6 +200,18 @@ class CompanyPhoto(Resource):
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
+
+    @jwt_required
+    def delete(self):
+        company_id = get_jwt_identity()
+        for EXT in ALLOWED_EXTENSIONS:
+            try:
+                photo = str(company_id)+"."+EXT
+                # print(filename)
+                os.remove(UPLOAD_FOLDER+"/"+photo)
+                return {'message': 'Photo deleted.'}, 200
+            except:
+                return {'message': 'Photo not uploaded.'}, 404
 
 
 class getCompanyPhoto(Resource):

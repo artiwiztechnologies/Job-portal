@@ -3,7 +3,7 @@ from werkzeug.security import safe_str_cmp
 import random
 import requests
 
-from flask import request ,jsonify, send_file,send_from_directory, url_for, redirect
+from flask import request, jsonify, send_file, send_from_directory, url_for, redirect
 from flask import render_template
 from werkzeug.utils import secure_filename
 import os
@@ -22,13 +22,14 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
 UPLOAD_FOLDER = 'candidatephoto'
 RESUME_FOLDER = 'resume'
-ALLOWED_EXTENSIONS = set(['png','jpg','jpeg'])
-ALLOWED_EXTENSIONS2 = set(['docx','doc', 'pdf'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+ALLOWED_EXTENSIONS2 = set(['docx', 'doc', 'pdf'])
 
 
 s = URLSafeTimedSerializer('Thisisasecret!')
-class UserRegister(Resource):
 
+
+class UserRegister(Resource):
 
     def post(self):
         _user_parser = reqparse.RequestParser()
@@ -65,17 +66,17 @@ class UserRegister(Resource):
                                   help="This field cannot be blank."
                                   )
         _user_parser.add_argument('profession',
-                                    type=str,
-                                    required=False,
-                                    default="",
-                                    help="This field cannot be blank."
-                                    )
+                                  type=str,
+                                  required=False,
+                                  default="",
+                                  help="This field cannot be blank."
+                                  )
         _user_parser.add_argument('links',
-                                    type=str,
-                                    required=False,
-                                    default="",
-                                    help="This field cannot be blank."
-                                    )
+                                  type=str,
+                                  required=False,
+                                  default="",
+                                  help="This field cannot be blank."
+                                  )
         _user_parser.add_argument('status',
                                   type=int,
                                   required=True,
@@ -94,10 +95,11 @@ class UserRegister(Resource):
             return {"message": "A user with that phone already exists"}, 400
         elif UserModel.find_by_phonenumber(data['email']):
             return {"message": "A user with that phonenumber already exists"}, 400
-        else:         
+        else:
             token = s.dumps(data['email'], salt='email-confirm')
 
-            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'], data['profession'], data['links'], data['about'])
+            user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'],
+                             data['active'], data['profession'], data['links'], data['about'])
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
@@ -105,7 +107,7 @@ class UserRegister(Resource):
 
             return {"message": "User created successfully."}, 201
 
-    
+
 class emailVerification(Resource):
     def get(self, token):
         try:
@@ -130,26 +132,49 @@ class resendEmail(Resource):
         user.send_verification_email(user.email, token)
 
         return {'message': 'Verification mail sent!'}, 200
-        
+
+
 class UserPhoto(Resource):
     @jwt_required
     def post(self):
-        print(request.files)
+
+        def delete_photo(EXT):
+            user_id = get_jwt_identity()
+            photo = str(user_id)+"."+EXT
+            os.remove(UPLOAD_FOLDER+"/"+photo)
+
+        # print(request.files)
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
-        
+
         files = request.files.getlist('file')
         errors = {}
         success = False
         for file in files:
-            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS:
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
-                URL = request.url_root[:-1]
-                print(URL, 146)
-                photoURL = URL+"/user/"+filename
+            if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
 
                 user_id = get_jwt_identity()
+
+                # ext = secure_filename(file.filename)
+                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+                print(ext)
+                # filename = str(user_id)+".png"
+
+                filename = str(user_id)+"."+ext
+                for EXT in ALLOWED_EXTENSIONS:
+                    path = str(user_id)+"."+EXT
+                    try:
+                        send_from_directory(UPLOAD_FOLDER, path=path)
+                        print(EXT)
+                        delete_photo(EXT)
+                    except:
+                        print(False)
+
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                URL = request.url_root[:-1]
+                # print(URL, 146)
+                photoURL = URL+"/user/"+filename
+
                 user = UserModel.find_by_id(user_id)
                 user.photoURL = photoURL
                 user.save_to_db()
@@ -157,63 +182,110 @@ class UserPhoto(Resource):
 
             else:
                 errors[file.filename] = 'File type is not allowed'
-        
+
         if success and errors:
             errors['message'] = 'File(s) successfully uploaded'
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
         if success:
-            resp = jsonify({'message' : 'Files successfully uploaded'})
+            resp = jsonify({'message': 'Files successfully uploaded'})
             resp.status_code = 201
-            return {'message': "Success", "photoURL" : photoURL}
+            return {'message': "Success", "photoURL": photoURL}
         else:
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
 
+    @jwt_required
+    def delete(self):
+        user_id = get_jwt_identity()
+        for EXT in ALLOWED_EXTENSIONS:
+            try:
+                photo = str(user_id)+"."+EXT
+                # print(filename)
+                os.remove(UPLOAD_FOLDER+"/"+photo)
+                return {'message': 'Photo deleted.'}, 200
+            except:
+                return {'message': 'Photo not uploaded.'}, 404
+
+
 class getUserPhoto(Resource):
     def get(self, path):
-        print (path)
+        print(path)
         try:
             return send_from_directory(UPLOAD_FOLDER, path=path, as_attachment=True)
         except FileNotFoundError:
-            return {'message':'File not Found'},404
-    
+            return {'message': 'File not Found'}, 404
+
 
 class Resume(Resource):
     @jwt_required
     def post(self):
-        print(request.files)
+
+        def delete_file(EXT):
+            user_id = get_jwt_identity()
+            filename = str(user_id)+"."+EXT
+            os.remove(RESUME_FOLDER+"/"+filename)
+
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 404
-        
+
         files = request.files.getlist('file')
         errors = {}
         for file in files:
-            if file and '.' in file.filename and file.filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS2:
-                filename = secure_filename(file.filename)
+            if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS2:
+                user_id = get_jwt_identity()
+
+                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+                print(ext)
+
+                filename = str(user_id)+"."+ext
+                for EXT in ALLOWED_EXTENSIONS2:
+                    path = str(user_id)+"."+EXT
+                    try:
+                        send_from_directory(RESUME_FOLDER, path=path)
+                        delete_file(EXT)
+                        print(True)
+                    except:
+                        print(False)
+
                 file.save(os.path.join(RESUME_FOLDER, filename))
 
-                resume = url_for('resume', filename=filename)
+                URL = request.url_root[:-1]
+                # print(URL, 146)
+                resume = URL+"/user/resume/"+filename
 
-                user_id = get_jwt_identity()
                 user = UserModel.find_by_id(user_id)
                 user.resume = resume
                 user.save_to_db()
 
-                return {'message': 'success'}
+                return {'message': 'success', "resume": resume}
 
             else:
                 return {'message': 'error'}
 
+    @jwt_required
+    def delete(self):
+        user_id = get_jwt_identity()
+        for EXT in ALLOWED_EXTENSIONS2:
+            try:
+                filename = str(user_id)+"."+EXT
+                print(filename)
+                os.remove(RESUME_FOLDER+"/"+filename)
+                return {'message': "Resume deleted."}, 200
+            except:
+                return {'message': 'Resume not uploaded.'}, 404
+
+
 class getResume(Resource):
     def get(self, path):
-        print (path)
+        print(path)
         try:
-            return send_from_directory(RESUME_FOLDER, path=path, as_preview=True)
+            return send_from_directory(RESUME_FOLDER, path=path)
         except FileNotFoundError:
-            return {'message':'File not Found'},404
+            return {'message': 'File not Found'}, 404
+
 
 class User(Resource):
     """
@@ -223,47 +295,45 @@ class User(Resource):
     _user_parser = reqparse.RequestParser()
 
     _user_parser.add_argument('name',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('phonenumber',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('email',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('location',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('profession',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('links',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('jobsApplied',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
     _user_parser.add_argument('about',
-                                type=str,
-                                required=True,
-                                help="This field cannot be blank."
-                                )
-
-
+                              type=str,
+                              required=True,
+                              help="This field cannot be blank."
+                              )
 
     @jwt_required
     def get(self, id):
@@ -300,8 +370,6 @@ class User(Resource):
         user.save_to_db()
 
         return {'message': 'Update successful!'}, 200
-        
-
 
 
 class UserLogin(Resource):
@@ -351,7 +419,6 @@ class UserLogin(Resource):
                     user.save_to_db()
                     print(user.id)
                     user.send_verification_email(user.email, token)
-
 
                     return{"message": "Account not verified", "status": user.status, "id": user.id}, 401
             return {"message": "Invalid Credentials!"}, 401
