@@ -35,7 +35,7 @@ class CompanyModel(db.Model):
 
     photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
-    comapanySize = db.Column(db.Integer)
+    companySize = db.Column(db.Integer)
     about = db.Column(db.String())
     links = db.Column(db.String())
     established = db.Column(db.String())
@@ -65,7 +65,7 @@ class CompanyModel(db.Model):
             'name': self.name,
             'photoURL': self.photoURL,
             'location': self.location,
-            'companySize': self.comapanySize,
+            'companySize': self.companySize,
             'about': self.about,
             'established': self.established,
             'jobsPosted': self.jobsPosted,

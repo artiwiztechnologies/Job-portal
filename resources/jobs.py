@@ -7,7 +7,8 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models.jobs import JobsModel
 from blacklist import BLACKLIST
 
-class addJob(Resource):  
+
+class addJob(Resource):
     @jwt_required
     def post(self):
         parser = reqparse.RequestParser()
@@ -57,7 +58,7 @@ class addJob(Resource):
                             required=True,
                             help="This field cannot be blank."
                             )
-        
+
         data = parser.parse_args()
         if JobsModel.find_by_title(data['title']):
             return {'message': '{} job already exists'.format(data['title'])}, 400
@@ -68,9 +69,8 @@ class addJob(Resource):
 
             return {'message': 'Job posted successfuly!'}, 201
 
-class Job(Resource):
 
-    
+class Job(Resource):
 
     @jwt_required
     def get(self, id):
@@ -150,19 +150,22 @@ class Job(Resource):
         job.salary = data['salary']
         job.career_level = data['career_level']
         job.role = data['role']
+        job.skills = data['skills']
 
         job.save_to_db()
 
         return {'message': 'Updated successfuly!'}, 200
 
+
 class JobsList(Resource):
     @jwt_required
     def get(self):
-        try: 
-            jobs = [job.json() for job in JobsModel.find_all()]
-            return {'Jobs': jobs}, 200
-        except:
-            return {'message': "Error"}, 500
+        # try:
+        jobs = [job.json() for job in JobsModel.find_all()]
+        return {'Jobs': jobs}, 200
+        # except:
+        #     return {'message': "Error"}, 500
+
 
 class companyJobs(Resource):
     @jwt_required
@@ -172,4 +175,3 @@ class companyJobs(Resource):
             return {'Jobs': jobs}
         except:
             return {'message': "Error"}, 500
-

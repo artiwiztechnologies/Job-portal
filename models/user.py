@@ -3,7 +3,8 @@ import datetime
 import requests
 from flask import Flask, request, url_for
 
-import smtplib, ssl
+import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -15,6 +16,7 @@ load_dotenv()
 sender_email = os.getenv("SENDER_EMAIL")
 password = os.getenv("PASSWORD")
 
+
 class UserModel(db.Model):
     __tablename__ = 'users'
 
@@ -24,24 +26,25 @@ class UserModel(db.Model):
     email = db.Column(db.String(200))
     password = db.Column(db.String(80))
     active = db.Column(db.Boolean())
-    status  = db.Column(db.Integer ) #not verified is 1 and 2 is verified and 3 is admin
+    # not verified is 1 and 2 is verified and 3 is admin
+    status = db.Column(db.Integer)
     subscription_id = db.Column(db.String())
-    expiry_date =  db.Column(db.String())
-    created_date = db.Column(db.String())
+    expiry_date = db.Column(db.String())
+    created_date = db.Column(db.String())  # have to remove
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
-    
+
     photoURL = db.Column(db.String(100), default="abcd")
     profession = db.Column(db.String())
     location = db.Column(db.String())
     links = db.Column(db.String())
-    jobsApplied = db.Column(db.String(), default="{'ids': [] }" ) # an array of job ids
-    skills = db.Column(db.String()) # an array of skills
+    # an array of job ids
+    jobsApplied = db.Column(db.String(), default="{'ids': [] }")
+    skills = db.Column(db.String())  # an array of skills
     about = db.Column(db.String())
     resume = db.Column(db.String(100), default="abcd")
-    
 
     def __init__(self, email, phonenumber, name, location, active, profession, links, about):
-        
+
         self.email = email
         # self.password = password
         self.phonenumber = phonenumber
@@ -51,7 +54,6 @@ class UserModel(db.Model):
         self.profession = profession
         self.links = links
         self.about = about
-
 
     def json(self):
         return {
@@ -121,4 +123,3 @@ class UserModel(db.Model):
     @classmethod
     def find_by_id(cls, id):
         return cls.query.filter_by(id=id).first()
-

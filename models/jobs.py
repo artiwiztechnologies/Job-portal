@@ -48,7 +48,12 @@ class JobsModel(db.Model):
             "role": self.role,
             "skills": self.skills,
             "date": self.date,
-            "photoURL": CompanyModel.find_by_id(self.company_id).photoURL
+            "photoURL": CompanyModel.find_by_id(self.company_id).photoURL,
+            "location": CompanyModel.find_by_id(self.company_id).location,
+            "company_name": CompanyModel.find_by_id(self.company_id).name,
+            "company_size": CompanyModel.find_by_id(self.company_id).companySize,
+            "company_type": CompanyModel.find_by_id(self.company_id).companyType
+
         }
 
     def save_to_db(self):
