@@ -10,6 +10,7 @@ from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTok
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail
 from resources.jobs import addJob, Job, JobsList, companyJobs
 from resources.applications import newApplication, Application, ByJobID, ByUserID
+from resources.favorites import newFavorite, Favorite, getFavorites
 
 app = Flask(__name__)
 CORS(app)
@@ -132,6 +133,10 @@ api.add_resource(newApplication, '/apply/<int:job_id>')
 api.add_resource(Application, '/application/<int:id>')
 api.add_resource(ByJobID, '/get-users/<int:job_id>')
 api.add_resource(ByUserID, '/get-jobs/<int:user_id>')
+
+api.add_resource(newFavorite, '/add-favorite/<int:job_id>')
+api.add_resource(Favorite, '/favorite/<int:id>')
+api.add_resource(getFavorites, '/get-favorites')
 
 
 if __name__ == '__main__':
