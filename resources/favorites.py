@@ -59,3 +59,4 @@ class getFavorites(Resource):
             return {'Favorites': favorites, 'message': 'Jobs saved by this user.'}, 200
         except:
             return {'message': 'Error'}, 500
+            

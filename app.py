@@ -8,9 +8,11 @@ from db import db
 from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail
-from resources.jobs import addJob, Job, JobsList, companyJobs
+from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers
 from resources.applications import newApplication, Application, ByJobID, ByUserID
 from resources.favorites import newFavorite, Favorite, getFavorites
+from resources.plans import Plan, PlansList, newPlan
+from resources.subscriptions import newSubscription, Subscription, SubscriptionsByIdList, DeactivateS
 
 app = Flask(__name__)
 CORS(app)
@@ -128,6 +130,8 @@ api.add_resource(addJob, '/post-job')
 api.add_resource(Job, '/job/<int:id>')
 api.add_resource(JobsList, '/jobs-list')
 api.add_resource(companyJobs, '/company-jobs/<int:id>')
+api.add_resource(getAppliedJobs, '/appliedjobs')
+api.add_resource(getAppliedUsers, '/appliedusers/<int:job_id>')
 
 api.add_resource(newApplication, '/apply/<int:job_id>')
 api.add_resource(Application, '/application/<int:id>')
@@ -138,6 +142,14 @@ api.add_resource(newFavorite, '/add-favorite/<int:job_id>')
 api.add_resource(Favorite, '/favorite/<int:id>')
 api.add_resource(getFavorites, '/get-favorites')
 
+api.add_resource(newPlan, '/add-plan')
+api.add_resource(Plan, '/plan/<int:id>')
+api.add_resource(PlansList, '/plan-list')
+
+api.add_resource(newSubscription, '/subscribe')
+api.add_resource(Subscription, '/subscription/<int:id>')
+api.add_resource(SubscriptionsByIdList, '/subscription-list/<string:_type>')
+api.add_resource(DeactivateS, '/deactivate/<int:id>')
 
 if __name__ == '__main__':
     db.init_app(app)

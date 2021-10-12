@@ -5,6 +5,8 @@ import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
 from models.jobs import JobsModel
+from models.applications import ApplicationsModel
+from models.user import UserModel
 from blacklist import BLACKLIST
 
 
@@ -175,3 +177,38 @@ class companyJobs(Resource):
             return {'Jobs': jobs}
         except:
             return {'message': "Error"}, 500
+
+
+class getAppliedJobs(Resource):
+    @jwt_required
+    def get(self):
+        try:
+            jobs = []
+            user_id = get_jwt_identity()
+            applications = ApplicationsModel.find_by_user_id(user_id)
+            print(applications)
+            for application in applications:
+                job = JobsModel.find_by_id(application.job_id)
+                jobs.append(job.json())
+            if not jobs:
+                return {'message': 'User has not applied to any jobs!'}, 400
+            return {'Jobs': jobs, 'message': 'Jobs applied by user {}'.format(user_id)}, 200
+        except:
+            return {'message': 'error'}, 500
+
+
+class getAppliedUsers(Resource):
+    @jwt_required
+    def get(self, job_id):
+        try:
+            users = []
+            # user_id = get_jwt_identity()
+            applications = ApplicationsModel.find_by_job_id(job_id)
+            for application in applications:
+                user = UserModel.find_by_id(application.user_id)
+                users.append(user.json())
+            if not users:
+                return {'message': 'No user has applied to this job!'}, 400
+            return {'users': users, 'message': 'Users applied to job {}'.format(job_id)}, 200
+        except:
+            return {'message': 'error'}, 500
