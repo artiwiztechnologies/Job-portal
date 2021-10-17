@@ -7,28 +7,33 @@ class OrdersModel(db.Model):
 
     __tablename__ = "orders"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
+    #id = db.Column(db.Integer(), primary_key=True)
+    oid = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer())
     email = db.Column(db.String())
     user_type = db.Column(db.String())
+    plan_id = db.Column(db.Integer())
 
     _id = db.Column(db.String())
     entity = db.Column(db.String())
-    amount = db.Column(db.Integer)
-    amount_paid = db.Column(db.Integer)
-    amount_due = db.Column(db.Integer)
+    amount = db.Column(db.Integer())
+    amount_paid = db.Column(db.Integer())
+    amount_due = db.Column(db.Integer())
     currency = db.Column(db.String())
     receipt = db.Column(db.String())
     # offer_id = db.Column(db.Integer)
     status = db.Column(db.String())
-    attempts = db.Column(db.Integer)
-    created_at = db.Column(db.Integer)
+    attempts = db.Column(db.Integer())
+    created_at = db.Column(db.Integer())
+
+    # offer_id, notes, plan_id not stored in db.
 
     def __init__(self, user_id, email, user_type, id, entity, amount, amount_paid, amount_due, currency, receipt, status, attempts, created_at, offer_id, notes, plan_id):
 
         self.user_id = user_id
         self.email = email
         self.user_type = user_type
+        self.plan_id = plan_id
 
         self._id = id
         self.entity = entity
@@ -45,10 +50,11 @@ class OrdersModel(db.Model):
     def json(self):
 
         return {
-            "id": self.id,
+            "id": self.oid,
             "user_id": self.user_id,
             "email": self.email,
             "user_type": self.user_type,
+            'plan_id': self.plan_id,
 
             "order_id": self._id,
             "entity": self.entity,
@@ -59,7 +65,7 @@ class OrdersModel(db.Model):
             "receipt": self.receipt,
             "status": self.status,
             "attempts": self.attempts,
-            "created_at": self.attempts
+            "created_at": self.created_at
         }
 
     def save_to_db(self):
@@ -73,6 +79,10 @@ class OrdersModel(db.Model):
     @classmethod
     def find_by_id(cls, id):
         return cls.query.filter_by(id=id).first()
+
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
 
 
 {

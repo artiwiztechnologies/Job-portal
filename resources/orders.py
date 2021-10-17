@@ -54,6 +54,18 @@ class newOrder(Resource):
         payment = client.order.create(data=data)
 
         order = OrdersModel(**post_data, **payment)
+        order.save_to_db()
 
-        print(order.json())
+        # print(order.json())
         return payment, 200
+
+
+class OrdersList(Resource):
+
+    def get(self):
+        try:
+            orders = [order.json() for order in OrdersModel.find_all()]
+
+            return {'orders': orders}, 200
+        except:
+            return {'message': 'Internal server error.'}, 500

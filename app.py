@@ -13,7 +13,7 @@ from resources.applications import newApplication, Application, ByJobID, ByUserI
 from resources.favorites import newFavorite, Favorite, getFavorites
 from resources.plans import Plan, PlansList, newPlan
 from resources.subscriptions import newSubscription, Subscription, SubscriptionsByIdList, DeactivateS
-from resources.orders import newOrder
+from resources.orders import newOrder, OrdersList
 from resources.payments import newPayment
 
 app = Flask(__name__)
@@ -154,6 +154,7 @@ api.add_resource(SubscriptionsByIdList, '/subscription-list/<string:_type>')
 api.add_resource(DeactivateS, '/deactivate/<int:id>')
 
 api.add_resource(newOrder, '/new-order')
+api.add_resource(OrdersList, '/orders-list')
 
 api.add_resource(newPayment, '/new-payment')
 
