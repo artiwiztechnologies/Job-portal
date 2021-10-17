@@ -26,7 +26,7 @@ class CompanyModel(db.Model):
     phonenumber = db.Column(db.String())
     email = db.Column(db.String())
     password = db.Column(db.String())
-    active = db.Column(db.String())
+    active = db.Column(db.String(), default=False)
     subscription_id = db.Column(db.String())
     expiry_date = db.Column(db.String())
     created_date = db.Column(db.String())
@@ -43,12 +43,12 @@ class CompanyModel(db.Model):
     jobsPosted = db.Column(db.String(), default="{'ids': [] }")
     companyType = db.Column(db.String())
 
-    def __init__(self, email, phonenumber, name, location, active, status, companySize, about, links, established, companyType):
+    def __init__(self, email, phonenumber, name, location, status, companySize, about, links, established, companyType):
         self.email = email
         self.phonenumber = phonenumber
         self.name = name
         self.status = status
-        self.active = active
+        # self.active = active
 
         self.location = location
         self.companySize = companySize
@@ -72,6 +72,7 @@ class CompanyModel(db.Model):
             'companyType': self.companyType,
             'links': self.links,
             'status': self.status,
+            'active': self.active,
             'type': self.__tablename__
         }
 

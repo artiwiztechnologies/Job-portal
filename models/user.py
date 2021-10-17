@@ -25,7 +25,7 @@ class UserModel(db.Model):
     phonenumber = db.Column(db.String(80))
     email = db.Column(db.String(200))
     password = db.Column(db.String(80))
-    active = db.Column(db.Boolean())
+    active = db.Column(db.Boolean(), default=False)
     # not verified is 1 and 2 is verified and 3 is admin
     status = db.Column(db.Integer)
     subscription_id = db.Column(db.String())
@@ -37,8 +37,8 @@ class UserModel(db.Model):
     profession = db.Column(db.String())
     location = db.Column(db.String())
     links = db.Column(db.String())
-    # an array of job ids
-    jobsApplied = db.Column(db.String(), default="{'ids': [] }")
+    jobsApplied = db.Column(
+        db.String(), default="{'ids': [] }")  # have to remove
     skills = db.Column(db.String())  # an array of skills
     about = db.Column(db.String())
     resume = db.Column(db.String(100), default="abcd")
@@ -50,7 +50,7 @@ class UserModel(db.Model):
         self.phonenumber = phonenumber
         self.name = name
         self.location = location
-        self.active = active
+        # self.active = active
         self.profession = profession
         self.links = links
         self.about = about
@@ -69,7 +69,8 @@ class UserModel(db.Model):
             'status': self.status,
             'resume': self.resume,
             'type': self.__tablename__,
-            'about': self.about
+            'about': self.about,
+            'active': self.active
         }
 
     def save_to_db(self):

@@ -93,8 +93,8 @@ class UserRegister(Resource):
         print(data['phonenumber'])
         if UserModel.find_by_phonenumber(data['phonenumber']):
             return {"message": "A user with that phone already exists"}, 400
-        elif UserModel.find_by_phonenumber(data['email']):
-            return {"message": "A user with that phonenumber already exists"}, 400
+        elif UserModel.find_by_email(data['email']):
+            return {"message": "A user with that email already exists"}, 400
         else:
             token = s.dumps(data['email'], salt='email-confirm')
 
