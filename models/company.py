@@ -3,6 +3,8 @@ import datetime
 import requests
 from flask import Flask, request, url_for
 
+from templates.email import Email
+
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -13,8 +15,11 @@ import os
 
 load_dotenv()
 
-sender_email = os.getenv("SENDER_EMAIL")
-password = os.getenv("PASSWORD")
+# sender_email = os.getenv("SENDER_EMAIL")
+# password = os.getenv("PASSWORD")
+
+sender_email = "t8910ech@gmail.com"
+password = "8910@tech"
 
 
 class CompanyModel(db.Model):
@@ -26,7 +31,7 @@ class CompanyModel(db.Model):
     phonenumber = db.Column(db.String())
     email = db.Column(db.String())
     password = db.Column(db.String())
-    active = db.Column(db.String(), default=False)
+    active = db.Column(db.Boolean(), default=False)
     subscription_id = db.Column(db.String())
     expiry_date = db.Column(db.String())
     created_date = db.Column(db.String())
@@ -73,7 +78,8 @@ class CompanyModel(db.Model):
             'links': self.links,
             'status': self.status,
             'active': self.active,
-            'type': self.__tablename__
+            'type': self.__tablename__,
+            'expiry_date': self.expiry_date
         }
 
     def send_verification_email(self, receiver_email, token):
@@ -85,24 +91,14 @@ class CompanyModel(db.Model):
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        html = """\
-        <html>
-        <body>
-            <p>Hi,<br>
-            Click (company)
-            <a href="{}" textDecoration="none"> here</a> 
-             to verify.
-            </p>
-        </body>
-        </html>
-        """.format(link)
+        html = Email._email(link)
 
         part2 = MIMEText(html, "html")
 
         message.attach(part2)
 
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
             server.login(sender_email, password)
             server.sendmail(
                 sender_email, receiver_email, message.as_string()

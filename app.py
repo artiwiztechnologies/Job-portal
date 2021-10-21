@@ -6,8 +6,8 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword
 from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers
 from resources.applications import newApplication, Application, ByJobID, ByUserID
 from resources.favorites import newFavorite, Favorite, getFavorites
@@ -105,6 +105,11 @@ def revoked_token_callback():
     }), 401
 
 
+@app.route("/token-expired")
+def token():
+    return render_template('token_expired.html')
+
+
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
@@ -116,6 +121,9 @@ api.add_resource(UserPhoto, '/uploaduserphoto')
 api.add_resource(getUserPhoto, '/user/<string:path>')
 api.add_resource(Resume, '/user/upload-resume')
 api.add_resource(getResume, '/user/resume/<string:path>')
+api.add_resource(ExpireUser, '/user/check-expiration')
+api.add_resource(ForgotUserPassword, '/user/forgot-password')
+api.add_resource(ResetUserPassword, '/user/reset-password')
 
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
@@ -127,6 +135,7 @@ api.add_resource(companyemailVerification,
 api.add_resource(resendCompanyEmail, '/resendcompanyemail/<int:id>')
 api.add_resource(CompanyPhoto, '/uploadcompanyphoto')
 api.add_resource(getCompanyPhoto, '/company/<string:path>')
+api.add_resource(ExpireCompany, '/company/check-expiration')
 
 api.add_resource(addJob, '/post-job')
 api.add_resource(Job, '/job/<int:id>')

@@ -2,16 +2,14 @@ from flask_restful import Resource, reqparse
 from werkzeug.security import safe_str_cmp
 import random
 import requests
+import datetime
+from random import randrange
 
-from flask import request, jsonify, send_file, send_from_directory, url_for, redirect
-from flask import render_template
+from flask import request, jsonify, send_file, send_from_directory, url_for, redirect, render_template
 from werkzeug.utils import secure_filename
 import os
 import re
 import json
-
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
@@ -19,6 +17,19 @@ from models.user import UserModel
 from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+sender_email = os.getenv("SENDER_EMAIL")
+password = os.getenv("PASSWORD")
 
 UPLOAD_FOLDER = 'candidatephoto'
 RESUME_FOLDER = 'resume'
@@ -90,7 +101,7 @@ class UserRegister(Resource):
                                   )
 
         data = _user_parser.parse_args()
-        print(data['phonenumber'])
+        # print(data['phonenumber'])
         if UserModel.find_by_phonenumber(data['phonenumber']):
             return {"message": "A user with that phone already exists"}, 400
         elif UserModel.find_by_email(data['email']):
@@ -118,7 +129,13 @@ class emailVerification(Resource):
             user.save_to_db()
 
         except SignatureExpired:
-            return "<h1>The token is expired!</h1>"
+
+            # h = """\
+            #     <h1>hello</h1>
+            #     """
+            # return h
+
+            return redirect("/token-expired")
 
         return redirect("https://jobportalfrontend.vercel.app/", code=302)
 
@@ -400,7 +417,9 @@ class UserLogin(Resource):
                         'user_id': user.id,
                         "email": user.email,
                         "status": user.status,
-                        'type': user.__tablename__
+                        'type': user.__tablename__,
+                        'active': user.active,
+                        'expiry_date': user.expiry_date
                     }, 200
                 elif(user.status == 3):
                     access_token = create_access_token(
@@ -448,3 +467,97 @@ class TokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
+
+
+class ExpireUser(Resource):
+    @jwt_required
+    def post(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        if user.active:
+
+            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
+            # today1 = "31-10-19"
+            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
+
+            # expiry_date = datetime.datetime.strptime(
+            #     user.expiry_date[2:10], "%y-%m-%d")
+
+            if(today > user.expiry_date):
+                user.active = False
+                user.save_to_db()
+                return {'active': False}
+
+            return {'active': True}
+
+
+class ForgotUserPassword(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('phonenumber',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        data = parser.parse_args()
+
+        user = UserModel.find_by_phonenumber(data['phonenumber'])
+
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        otp = str(randrange(100000, 1000000))
+
+        user.otp = otp
+        user.save_to_db()
+        receiver_email = user.email
+
+        # print(otp)
+        user.send_otp_email(otp, receiver_email)
+        return {'message': 'OTP sent'}, 200
+
+
+class ResetUserPassword(Resource):
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('phonenumber',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('password',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('oldpassword',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('otp',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        data = parser.parse_args()
+
+        user = UserModel.find_by_phonenumber(data['phonenumber'])
+
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        if otp != user.otp:
+            return {'message': 'Wrong OTP!'}, 400
+
+        if oldpassword != user.password:
+            return {'message': 'Wrong password!'}, 400
+
+        if password == user.password:
+            return {'message': 'New password cannot be the same as the old password'}, 400
+
+        user.password = password
+        user.save_to_db()
+
+        return {'message': 'Password successfuly reset.'}, 200

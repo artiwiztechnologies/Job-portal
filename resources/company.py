@@ -108,7 +108,7 @@ class CompanyRegister(Resource):
 
             token = s.dumps(data['email'], salt='email-confirm')
 
-            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'], data['active'],
+            company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'],
                                    data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
             company.status = data['status']
             company.password = data['password']
@@ -346,7 +346,9 @@ class CompanyLogin(Resource):
                         'company_id': company.id,
                         "email": company.email,
                         'status': company.status,
-                        'type': company.__tablename__
+                        'type': company.__tablename__,
+                        'active': company.active,
+                        'expiry_date': company.expiry_date
                     }, 200
                 elif(company.status == 3):
                     access_token = create_access_token(
@@ -392,3 +394,22 @@ class CompanyTokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
+
+
+class ExpireCompany(Resource):
+    @jwt_required
+    def post(self):
+        company_id = get_jwt_identity()
+        company = CompanyModel.find_by_id(company_id)
+        if company.active:
+
+            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
+            # today1 = "31-10-19"
+            today = (str)
+
+            if(today > company.expiry_date):
+                company.active = False
+                company.save_to_db()
+                return {'active': False}
+
+            return {'active': True}
