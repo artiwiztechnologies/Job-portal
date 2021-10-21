@@ -4,6 +4,7 @@ import random
 import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 from random import randrange
+import datetime
 
 from models.company import CompanyModel
 
@@ -406,14 +407,15 @@ class ExpireCompany(Resource):
 
             today1 = str(datetime.datetime.now()).split(' ')[0][2:]
             # today1 = "31-10-19"
-            today = (str)
+            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
 
             if(today > company.expiry_date):
                 company.active = False
                 company.save_to_db()
-                return {'active': False}
+                return {'active': False, 'message': 'Subscription expired!'}
 
-            return {'active': True}
+            return {'active': True, 'message': 'Subscription not expired!'}
+        return {'active': False, 'message': 'No active subscription'}
 
 
 class ForgotCompanyPassword(Resource):

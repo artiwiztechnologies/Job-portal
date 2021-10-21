@@ -135,7 +135,7 @@ class emailVerification(Resource):
             #     """
             # return h
 
-            return redirect("/token-expired")
+            return "Invalid token"
 
         return redirect("https://jobportalfrontend.vercel.app/", code=302)
 
@@ -486,9 +486,10 @@ class ExpireUser(Resource):
             if(today > user.expiry_date):
                 user.active = False
                 user.save_to_db()
-                return {'active': False}
+                return {'active': False, 'message': 'Subscription expired!'}
 
-            return {'active': True}
+            return {'active': True, 'message': 'Subscription not expired!'}
+        return {'active': False, 'message': 'No active subscription'}
 
 
 class ForgotUserPassword(Resource):
