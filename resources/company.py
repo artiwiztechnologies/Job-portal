@@ -3,6 +3,7 @@ from werkzeug.security import safe_str_cmp
 import random
 import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
+from random import randrange
 
 from models.company import CompanyModel
 
@@ -413,3 +414,75 @@ class ExpireCompany(Resource):
                 return {'active': False}
 
             return {'active': True}
+
+
+class ForgotCompanyPassword(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('phonenumber',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        data = parser.parse_args()
+
+        company = CompanyModel.find_by_phonenumber(data['phonenumber'])
+
+        if not company:
+            return {'message': 'Company not found'}, 404
+
+        otp = randrange(100000, 1000000)
+
+        company.otp = str(otp)
+        company.save_to_db()
+        receiver_email = company.email
+
+        # print(otp)
+        company.send_otp_email(str(otp), receiver_email)
+        return {'message': 'OTP sent'}, 200
+
+
+class ResetCompanyPassword(Resource):
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('phonenumber',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('password',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('oldpassword',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('otp',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        data = parser.parse_args()
+
+        company = CompanyModel.find_by_phonenumber(data['phonenumber'])
+
+        if not company:
+            return {'message': 'Company not found'}, 404
+
+        if data['otp'] != company.otp:
+            return {'message': 'Wrong OTP!'}, 400
+
+        if data['oldpassword'] != company.password:
+            return {'message': 'Wrong password!'}, 400
+
+        if data['password'] == company.password:
+            return {'message': 'New password cannot be the same as the old password'}, 400
+
+        company.password = data['password']
+        company.save_to_db()
+
+        return {'message': 'Password successfuly reset.'}, 200

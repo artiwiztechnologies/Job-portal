@@ -68,6 +68,9 @@ class newPayment(Resource):
 
             plan = PlansModel.find_by_id(data["plan_id"])
 
+            if not plan:
+                return {'message': 'Plan not available.'}, 404
+
             if data['type'] == "users":
                 user = UserModel.find_by_id(jwt_id)
                 user.active = True

@@ -506,14 +506,14 @@ class ForgotUserPassword(Resource):
         if not user:
             return {'message': 'User not found'}, 404
 
-        otp = str(randrange(100000, 1000000))
+        otp = randrange(100000, 1000000)
 
-        user.otp = otp
+        user.otp = str(otp)
         user.save_to_db()
         receiver_email = user.email
 
         # print(otp)
-        user.send_otp_email(otp, receiver_email)
+        user.send_otp_email(str(otp), receiver_email)
         return {'message': 'OTP sent'}, 200
 
 
@@ -548,16 +548,16 @@ class ResetUserPassword(Resource):
         if not user:
             return {'message': 'User not found'}, 404
 
-        if otp != user.otp:
+        if data['otp'] != user.otp:
             return {'message': 'Wrong OTP!'}, 400
 
-        if oldpassword != user.password:
+        if data['oldpassword'] != user.password:
             return {'message': 'Wrong password!'}, 400
 
-        if password == user.password:
+        if data['password'] == user.password:
             return {'message': 'New password cannot be the same as the old password'}, 400
 
-        user.password = password
+        user.password = data['password']
         user.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200

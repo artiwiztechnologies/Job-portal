@@ -4,6 +4,7 @@ import requests
 from flask import Flask, request, url_for, render_template
 
 from templates.email import Email
+from templates.otp import OTP_email
 
 import smtplib
 import ssl
@@ -20,7 +21,7 @@ load_dotenv()
 sender_email = os.getenv("SENDER_EMAIL")
 password = os.getenv("PASSWORD")
 
-# sender_email = "noreply@artiwiztech.com"
+# sender_email = "t8910ech@gmail.com"
 # password = "8910@tech"
 
 
@@ -115,7 +116,7 @@ class UserModel(db.Model):
 
         part2 = MIMEText(html, "html")
 
-        message.attach(otp)
+        message.attach(part2)
 
         # message = render_template("verification_email.html")
 
@@ -129,14 +130,24 @@ class UserModel(db.Model):
 
     def send_otp_email(self, otp, receiver_email):
 
+        # sender_email = "t8910ech@gmail.com"
+        # password = "8910@tech"
+
         message = MIMEMultipart("alternative")
         message["Subject"] = "Reset password."
         message["From"] = sender_email
         message["To"] = receiver_email
 
         # html = Email._email(link)
-        print(receiver_email)
-        part2 = MIMEText(otp, "text")
+
+        html = """\
+            <p>Your OTP is {}.</p>
+            """.format(otp)
+
+        # html = OTP_email.OTP(otp)
+
+        # print(receiver_email)
+        part2 = MIMEText(html, "html")
 
         message.attach(part2)
 
@@ -147,5 +158,5 @@ class UserModel(db.Model):
             # server.starttls(context=context)
             server.login(sender_email, password)
             server.sendmail(
-                sender_email, receiver_email, message
+                sender_email, receiver_email, message.as_string()
             )

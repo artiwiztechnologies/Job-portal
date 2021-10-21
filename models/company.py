@@ -15,11 +15,11 @@ import os
 
 load_dotenv()
 
-# sender_email = os.getenv("SENDER_EMAIL")
-# password = os.getenv("PASSWORD")
+sender_email = os.getenv("SENDER_EMAIL")
+password = os.getenv("PASSWORD")
 
-sender_email = "t8910ech@gmail.com"
-password = "8910@tech"
+# sender_email = "t8910ech@gmail.com"
+# password = "8910@tech"
 
 
 class CompanyModel(db.Model):
@@ -37,6 +37,7 @@ class CompanyModel(db.Model):
     created_date = db.Column(db.String())
     status = db.Column(db.Integer)
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
+    otp = db.Column(db.String(6))
 
     photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
@@ -98,7 +99,7 @@ class CompanyModel(db.Model):
         message.attach(part2)
 
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
             server.login(sender_email, password)
             server.sendmail(
                 sender_email, receiver_email, message.as_string()
@@ -123,3 +124,38 @@ class CompanyModel(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+
+
+    def send_otp_email(self, otp, receiver_email):
+
+        # sender_email = "t8910ech@gmail.com"
+        # password = "8910@tech"
+
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Reset password."
+        message["From"] = sender_email
+        message["To"] = receiver_email
+
+        # html = Email._email(link)
+
+        html = """\
+            <p>Your OTP is {}.</p>
+            """.format(otp)
+
+        # html = OTP_email.OTP(otp)
+
+        # print(receiver_email)
+        part2 = MIMEText(html, "html")
+
+        message.attach(part2)
+
+        # message = render_template("verification_email.html")
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
+            # server.starttls(context=context)
+            server.login(sender_email, password)
+            server.sendmail(
+                sender_email, receiver_email, message.as_string()
+            )
