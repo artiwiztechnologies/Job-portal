@@ -74,7 +74,7 @@ class UserModel(db.Model):
             'location': self.location,
             'profession': self.profession,
             'links': self.links,
-            'jobsApplied': self.jobsApplied,
+            #'jobsApplied': self.jobsApplied,
             'status': self.status,
             'resume': self.resume,
             'type': self.__tablename__,

@@ -73,6 +73,10 @@ class newPayment(Resource):
 
             if data['type'] == "users":
                 user = UserModel.find_by_id(jwt_id)
+
+                if not user:
+                    return {'message': 'User not found'}, 404
+
                 user.active = True
 
                 date1 = str(datetime.datetime.now()).split(' ')[0][2:]
@@ -84,6 +88,10 @@ class newPayment(Resource):
                 user.save_to_db()
             else:
                 company = CompanyModel.find_by_id(jwt_id)
+
+                if not company:
+                    return {'message': 'Company not found'}, 404
+
                 company.active = True
 
                 date1 = str(datetime.datetime.now()).split(' ')[0][2:]

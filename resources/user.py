@@ -155,11 +155,6 @@ class UserPhoto(Resource):
     @jwt_required
     def post(self):
 
-        def delete_photo(EXT):
-            user_id = get_jwt_identity()
-            photo = str(user_id)+"."+EXT
-            os.remove(UPLOAD_FOLDER+"/"+photo)
-
         # print(request.files)
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
@@ -169,31 +164,28 @@ class UserPhoto(Resource):
         success = False
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
-
                 user_id = get_jwt_identity()
-
-                # ext = secure_filename(file.filename)
-                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-                print(ext)
-                # filename = str(user_id)+".png"
-
-                filename = str(user_id)+"."+ext
-                for EXT in ALLOWED_EXTENSIONS:
-                    path = str(user_id)+"."+EXT
-                    try:
-                        send_from_directory(UPLOAD_FOLDER, path=path)
-                        print(EXT)
-                        delete_photo(EXT)
-                    except:
-                        print(False)
-
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
-                URL = request.url_root[:-1]
-                # print(URL, 146)
-                photoURL = URL+"/user/"+filename
-
                 user = UserModel.find_by_id(user_id)
-                user.photoURL = photoURL
+
+                if user.photoURL != "":
+                    print(UPLOAD_FOLDER + "/" + user.photoURL.split('/')[-1])
+                    try:
+                        os.remove(UPLOAD_FOLDER + "/" + user.photoURL.split('/')[-1])
+                    except:
+                        pass
+                    user.photoURL = ""
+                    user.save_to_db()
+                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+                filename = secure_filename(file.filename)
+
+                URL = request.url_root[:-1]
+                print(True)
+                print(URL)
+                photoURL = "user"+ str(user_id) + "-" + filename
+
+                file.save(os.path.join(UPLOAD_FOLDER, photoURL))
+
+                user.photoURL = URL + "/user/" + photoURL
                 user.save_to_db()
                 success = True
 
@@ -208,7 +200,7 @@ class UserPhoto(Resource):
         if success:
             resp = jsonify({'message': 'Files successfully uploaded'})
             resp.status_code = 201
-            return {'message': "Success", "photoURL": photoURL}
+            return {'message': "Success", "photoURL": user.photoURL}
         else:
             resp = jsonify(errors)
             resp.status_code = 500
@@ -217,14 +209,18 @@ class UserPhoto(Resource):
     @jwt_required
     def delete(self):
         user_id = get_jwt_identity()
-        for EXT in ALLOWED_EXTENSIONS:
-            try:
-                photo = str(user_id)+"."+EXT
-                # print(filename)
-                os.remove(UPLOAD_FOLDER+"/"+photo)
-                return {'message': 'Photo deleted.'}, 200
-            except:
-                return {'message': 'Photo not uploaded.'}, 404
+        print(user_id)
+        user = UserModel.find_by_id(user_id)
+        try:
+            photo = user.photoURL.split('/')[-1]
+            print(photo)
+            os.remove(UPLOAD_FOLDER+"/"+photo)
+            user.photoURL = ""
+            user.save_to_db()
+            return {'message': 'Photo deleted.'}, 200
+        except:
+            pass
+        return {'message': 'Photo not uploaded.'}, 404
 
 
 class getUserPhoto(Resource):
@@ -240,11 +236,6 @@ class Resume(Resource):
     @jwt_required
     def post(self):
 
-        def delete_file(EXT):
-            user_id = get_jwt_identity()
-            filename = str(user_id)+"."+EXT
-            os.remove(RESUME_FOLDER+"/"+filename)
-
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 404
 
@@ -253,31 +244,27 @@ class Resume(Resource):
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS2:
                 user_id = get_jwt_identity()
+                user = UserModel.find_by_id(user_id)
 
-                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-                print(ext)
-
-                filename = str(user_id)+"."+ext
-                for EXT in ALLOWED_EXTENSIONS2:
-                    path = str(user_id)+"."+EXT
+                if user.resume != "":
                     try:
-                        send_from_directory(RESUME_FOLDER, path=path)
-                        delete_file(EXT)
-                        print(True)
+                        os.remove(RESUME_FOLDER + "/" + user.resume.split('/')[-1])
                     except:
-                        print(False)
-
-                file.save(os.path.join(RESUME_FOLDER, filename))
+                        pass
+                    user.resume = ""
+                    user.save_to_db()
+                filename = secure_filename(file.filename)
 
                 URL = request.url_root[:-1]
-                # print(URL, 146)
-                resume = URL+"/user/resume/"+filename
+                resume = "resume"+ str(user_id) + "-" + filename
 
-                user = UserModel.find_by_id(user_id)
-                user.resume = resume
+                file.save(os.path.join(RESUME_FOLDER, resume))
+
+                user.resume = URL + "/user-resume/" + resume
                 user.save_to_db()
+                success = True
 
-                return {'message': 'success', "resume": resume}
+                return {'message': 'success', "resume": user.resume}
 
             else:
                 return {'message': 'error'}
@@ -285,11 +272,14 @@ class Resume(Resource):
     @jwt_required
     def delete(self):
         user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
         for EXT in ALLOWED_EXTENSIONS2:
             try:
-                filename = str(user_id)+"."+EXT
+                filename = user.resume.split('/')[-1]
                 print(filename)
                 os.remove(RESUME_FOLDER+"/"+filename)
+                user.resume = ""
+                user.save_to_db()
                 return {'message': "Resume deleted."}, 200
             except:
                 return {'message': 'Resume not uploaded.'}, 404
@@ -562,3 +552,66 @@ class ResetUserPassword(Resource):
         user.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200
+
+
+
+# class Resume(Resource):
+#     @jwt_required
+#     def post(self):
+
+#         def delete_file(EXT):
+#             user_id = get_jwt_identity()
+#             filename = str(user_id)+"."+EXT
+#             os.remove(RESUME_FOLDER+"/"+filename)
+
+#         if 'file' not in request.files:
+#             return {'message': 'No file uploaded!'}, 404
+
+#         files = request.files.getlist('file')
+#         errors = {}
+#         for file in files:
+#             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS2:
+#                 user_id = get_jwt_identity()
+
+#                 ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+#                 print(ext)
+
+#                 filename = str(user_id)+"."+ext
+#                 for EXT in ALLOWED_EXTENSIONS2:
+#                     path = str(user_id)+"."+EXT
+#                     try:
+#                         send_from_directory(RESUME_FOLDER, path=path)
+#                         delete_file(EXT)
+#                         print(True)
+#                     except:
+#                         print(False)
+
+#                 file.save(os.path.join(RESUME_FOLDER, filename))
+
+#                 URL = request.url_root[:-1]
+#                 # print(URL, 146)
+#                 resume = URL+"/user/resume/"+filename
+
+#                 user = UserModel.find_by_id(user_id)
+#                 user.resume = resume
+#                 user.save_to_db()
+
+#                 return {'message': 'success', "resume": resume}
+
+#             else:
+#                 return {'message': 'error'}
+
+#     @jwt_required
+#     def delete(self):
+#         user_id = get_jwt_identity()
+#         user = UserModel.find_by_id(user_id)
+#         for EXT in ALLOWED_EXTENSIONS2:
+#             try:
+#                 filename = str(user_id)+"."+EXT
+#                 print(filename)
+#                 os.remove(RESUME_FOLDER+"/"+filename)
+#                 user.resume = ""
+#                 user.save_to_db()
+#                 return {'message': "Resume deleted."}, 200
+#             except:
+#                 return {'message': 'Resume not uploaded.'}, 404

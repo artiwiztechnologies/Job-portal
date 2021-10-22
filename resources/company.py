@@ -147,12 +147,8 @@ class CompanyPhoto(Resource):
 
     @jwt_required
     def post(self):
-        # print(request.files)
-        def delete_photo(EXT):
-            user_id = get_jwt_identity()
-            photo = str(company_id)+"."+EXT
-            os.remove(UPLOAD_FOLDER+"/"+photo)
 
+        # print(request.files)
         if 'file' not in request.files:
             return {'message': 'No file uploaded!'}, 400
 
@@ -162,27 +158,26 @@ class CompanyPhoto(Resource):
         for file in files:
             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 company_id = get_jwt_identity()
-
-                # filename = secure_filename(file.filename)
-                ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-                print(ext)
-                # filename = str(user_id)+".png"
-
-                filename = str(company_id)+"."+ext
-                for EXT in ALLOWED_EXTENSIONS:
-                    path = str(company_id)+"."+EXT
-                    try:
-                        send_from_directory(UPLOAD_FOLDER, path=path)
-                        print(EXT)
-                        delete_photo(EXT)
-                    except:
-                        print(False)
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
-                URL = request.url_root[:-1]
-                photoURL = URL+"/company/"+filename
-
                 company = CompanyModel.find_by_id(company_id)
-                company.photoURL = photoURL
+
+                if company.photoURL != "":
+                    print(UPLOAD_FOLDER + "/" + company.photoURL.split('/')[-1])
+                    try:
+                        os.remove(UPLOAD_FOLDER + "/" + company.photoURL.split('/')[-1])
+                    except:
+                        pass
+                    company.photoURL = ""
+                    company.save_to_db()
+                filename = secure_filename(file.filename)
+
+                URL = request.url_root[:-1]
+                print(True)
+                print(URL)
+                photoURL = "company"+ str(company_id) + "-" + filename
+
+                file.save(os.path.join(UPLOAD_FOLDER, photoURL))
+
+                company.photoURL = URL + "/company/" + photoURL
                 company.save_to_db()
                 success = True
 
@@ -197,23 +192,27 @@ class CompanyPhoto(Resource):
         if success:
             resp = jsonify({'message': 'Files successfully uploaded'})
             resp.status_code = 201
-            return {'message': "Success", "photoURL": photoURL}
+            return {'message': "Success", "photoURL": company.photoURL}
         else:
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
-
+    
     @jwt_required
     def delete(self):
         company_id = get_jwt_identity()
-        for EXT in ALLOWED_EXTENSIONS:
-            try:
-                photo = str(company_id)+"."+EXT
-                # print(filename)
-                os.remove(UPLOAD_FOLDER+"/"+photo)
-                return {'message': 'Photo deleted.'}, 200
-            except:
-                return {'message': 'Photo not uploaded.'}, 404
+        # print(user_id)
+        company = CompanyModel.find_by_id(company_id)
+        try:
+            photo = company.photoURL.split('/')[-1]
+            print(photo)
+            os.remove(UPLOAD_FOLDER+"/"+photo)
+            company.photoURL = ""
+            company.save_to_db()
+            return {'message': 'Photo deleted.'}, 200
+        except:
+            pass
+        return {'message': 'Photo not uploaded.'}, 404
 
 
 class getCompanyPhoto(Resource):
@@ -488,3 +487,56 @@ class ResetCompanyPassword(Resource):
         company.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200
+
+
+# def post(self):
+
+#         if 'file' not in request.files:
+#             return {'message': 'No file uploaded!'}, 400
+
+#         files = request.files.getlist('file')
+#         errors = {}
+#         success = False
+#         for file in files:
+#             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
+#                 company_id = get_jwt_identity()
+
+#                 # filename = secure_filename(file.filename)
+#                 ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
+#                 print(ext)
+#                 # filename = str(user_id)+".png"
+
+#                 filename = str(company_id)+"."+ext
+#                 for EXT in ALLOWED_EXTENSIONS:
+#                     path = str(company_id)+"."+EXT
+#                     try:
+#                         send_from_directory(UPLOAD_FOLDER, path=path)
+#                         print(EXT)
+#                         delete_photo(EXT)
+#                     except:
+#                         print(False)
+#                 file.save(os.path.join(UPLOAD_FOLDER, filename))
+#                 URL = request.url_root[:-1]
+#                 photoURL = URL+"/company/"+filename
+
+#                 company = CompanyModel.find_by_id(company_id)
+#                 company.photoURL = photoURL
+#                 company.save_to_db()
+#                 success = True
+
+#             else:
+#                 errors[file.filename] = 'File type is not allowed'
+
+#         if success and errors:
+#             errors['message'] = 'File(s) successfully uploaded'
+#             resp = jsonify(errors)
+#             resp.status_code = 500
+#             return resp
+#         if success:
+#             resp = jsonify({'message': 'Files successfully uploaded'})
+#             resp.status_code = 201
+#             return {'message': "Success", "photoURL": photoURL}
+#         else:
+#             resp = jsonify(errors)
+#             resp.status_code = 500
+#             return resp
