@@ -9,7 +9,7 @@ from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword
 from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers
-from resources.applications import newApplication, Application, ByJobID, ByUserID
+from resources.applications import newApplication, Application, ByJobID, ByUserID, CompanyApplicants
 from resources.favorites import newFavorite, Favorite, getFavorites
 from resources.plans import Plan, PlansList, newPlan
 from resources.subscriptions import newSubscription, Subscription, SubscriptionsByIdList, DeactivateS
@@ -109,7 +109,8 @@ def revoked_token_callback():
 def token():
     return render_template('token_expired.html')
 
-#user
+
+# user
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:id>')
 api.add_resource(UserLogin, '/login')
@@ -126,7 +127,7 @@ api.add_resource(ForgotUserPassword, '/user/forgot-password')
 api.add_resource(ResetUserPassword, '/user/reset-password')
 
 
-#company
+# company
 api.add_resource(CompanyRegister, '/companyregister')
 api.add_resource(Company, '/company/<int:id>')
 api.add_resource(CompanyLogin, '/companylogin')
@@ -142,7 +143,7 @@ api.add_resource(ForgotCompanyPassword, '/company/forgot-password')
 api.add_resource(ResetCompanyPassword, '/company/reset-password')
 
 
-#jobs
+# jobs
 api.add_resource(addJob, '/post-job')
 api.add_resource(Job, '/job/<int:id>')
 api.add_resource(JobsList, '/jobs-list')
@@ -151,38 +152,38 @@ api.add_resource(getAppliedJobs, '/appliedjobs')
 api.add_resource(getAppliedUsers, '/appliedusers/<int:job_id>')
 
 
-#applications
+# applications
 api.add_resource(newApplication, '/apply/<int:job_id>')
 api.add_resource(Application, '/application/<int:id>')
 api.add_resource(ByJobID, '/get-users/<int:job_id>')
 api.add_resource(ByUserID, '/get-jobs/<int:user_id>')
+api.add_resource(CompanyApplicants, '/company-applcants/<int:company_id>')
 
-
-#favorited
+# favorited
 api.add_resource(newFavorite, '/add-favorite/<int:job_id>')
 api.add_resource(Favorite, '/favorite/<int:id>')
 api.add_resource(getFavorites, '/get-favorites')
 
 
-#plan
+# plan
 api.add_resource(newPlan, '/add-plan')
 api.add_resource(Plan, '/plan/<int:id>')
 api.add_resource(PlansList, '/plan-list')
 
 
-#subscribe
+# subscribe
 api.add_resource(newSubscription, '/subscribe')
 api.add_resource(Subscription, '/subscription/<int:id>')
 api.add_resource(SubscriptionsByIdList, '/subscription-list/<string:_type>')
 api.add_resource(DeactivateS, '/deactivate/<int:id>')
 
 
-#order
+# order
 api.add_resource(newOrder, '/new-order')
 api.add_resource(OrdersList, '/orders-list')
 
 
-#payment
+# payment
 api.add_resource(newPayment, '/new-payment')
 
 if __name__ == '__main__':

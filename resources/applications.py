@@ -24,6 +24,9 @@ class newApplication(Resource):
             user = UserModel.find_by_id(data['user_id'])
             data['user_email'] = user.email
             data['job_id'] = job_id
+            job = JobsModel.find_by_id(job_id)
+            data['company_id'] = job.company_id
+            print(data['company_id'])
             application = ApplicationsModel(**data)
             application.save_to_db()
 
@@ -72,5 +75,25 @@ class ByUserID(Resource):
             if not applications:
                 return {'message': 'User has not applied to any jobs.'}, 200
             return {'Applications': applications, 'message': 'Jobs applied by this user.'}, 200
+        except:
+            return {'message': 'Error'}, 500
+
+
+class CompanyApplicants(Resource):
+
+    @jwt_required
+    def get(self, company_id):
+        try:
+            applications_main = [application.json(
+            ) for application in ApplicationsModel.find_by_company_id(company_id)]
+            applications = ApplicationsModel.find_by_company_id(company_id)
+            if not applications:
+                return {'message': 'No users have applied to this company'}, 401
+
+            applicants = []
+            for application in applications:
+                user = UserModel.find_by_id(application.user_id)
+                applicants.append(user.json())
+            return {'Applicants': applicants, 'Applications': applications_main}
         except:
             return {'message': 'Error'}, 500

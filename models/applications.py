@@ -4,6 +4,8 @@ import requests
 
 from models.user import UserModel
 from models.jobs import JobsModel
+from models.company import CompanyModel
+
 
 class ApplicationsModel(db.Model):
     __tablename__ = "applications"
@@ -12,26 +14,30 @@ class ApplicationsModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user_email = db.Column(db.String(), db.ForeignKey('users.email'))
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
-    date = db.Column(db.String, default=str(datetime.datetime.now()).split(' ')[0])
+    company_id = db.Column(db.Integer(), db.ForeignKey('company.id'))
+    date = db.Column(db.String, default=str(
+        datetime.datetime.now()).split(' ')[0])
 
-    def __init__(self, user_id, user_email, job_id):
+    def __init__(self, user_id, user_email, job_id, company_id):
         self.user_id = user_id
         self.user_email = user_email
         self.job_id = job_id
+        self.company_id = company_id
 
     def json(self):
         return {
-            "id":self.id,
+            "id": self.id,
             "user_id": self.user_id,
             "user_email": self.user_email,
             "job_id": self.job_id,
+            "company_id": self.company_id,
             "date": self.date
         }
 
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
-    
+
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
@@ -43,6 +49,10 @@ class ApplicationsModel(db.Model):
     @classmethod
     def find_by_user_id(cls, user_id):
         return cls.query.filter_by(user_id=user_id)
+
+    @classmethod
+    def find_by_company_id(cls, company_id):
+        return cls.query.filter_by(company_id=company_id)
 
     @classmethod
     def find_by_user_email(cls, user_email):
