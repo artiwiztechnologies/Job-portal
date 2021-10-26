@@ -14,6 +14,7 @@ import json
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 
 from models.user import UserModel
+from models.helper import Helper
 from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
@@ -170,7 +171,8 @@ class UserPhoto(Resource):
                 if user.photoURL != "":
                     print(UPLOAD_FOLDER + "/" + user.photoURL.split('/')[-1])
                     try:
-                        os.remove(UPLOAD_FOLDER + "/" + user.photoURL.split('/')[-1])
+                        os.remove(UPLOAD_FOLDER + "/" +
+                                  user.photoURL.split('/')[-1])
                     except:
                         pass
                     user.photoURL = ""
@@ -181,7 +183,7 @@ class UserPhoto(Resource):
                 URL = request.url_root[:-1]
                 print(True)
                 print(URL)
-                photoURL = "user"+ str(user_id) + "-" + filename
+                photoURL = "user" + str(user_id) + "-" + filename
 
                 file.save(os.path.join(UPLOAD_FOLDER, photoURL))
 
@@ -248,7 +250,8 @@ class Resume(Resource):
 
                 if user.resume != "":
                     try:
-                        os.remove(RESUME_FOLDER + "/" + user.resume.split('/')[-1])
+                        os.remove(RESUME_FOLDER + "/" +
+                                  user.resume.split('/')[-1])
                     except:
                         pass
                     user.resume = ""
@@ -256,7 +259,7 @@ class Resume(Resource):
                 filename = secure_filename(file.filename)
 
                 URL = request.url_root[:-1]
-                resume = "resume"+ str(user_id) + "-" + filename
+                resume = "resume" + str(user_id) + "-" + filename
 
                 file.save(os.path.join(RESUME_FOLDER, resume))
 
@@ -355,6 +358,7 @@ class User(Resource):
         user = UserModel.find_by_id(id)
         if not user:
             return {'message': 'User Not Found'}, 404
+        Helper.del_applications_by_user(id)
         user.delete_from_db()
         return {'message': 'User deleted.'}, 200
 
@@ -377,6 +381,86 @@ class User(Resource):
         user.save_to_db()
 
         return {'message': 'Update successful!'}, 200
+
+
+class EditUser(Resource):
+
+    @jwt_required
+    def put(self):
+        _user_parser = reqparse.RequestParser()
+
+        _user_parser.add_argument('name',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('phonenumber',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('email',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('location',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('profession',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('links',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('jobsApplied',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+        _user_parser.add_argument('about',
+                                  type=str,
+                                  required=True,
+                                  help="This field cannot be blank."
+                                  )
+
+        id = get_jwt_identity()
+
+        data = User._user_parser.parse_args()
+        if not UserModel.find_by_id(id):
+            return {'message': 'User not found.'}, 404
+        user = UserModel.find_by_id(id)
+
+        user.name = data['name']
+        user.phonenumber = data['phonenumber']
+        user.email = data['email']
+        user.location = data['location']
+        user.profession = data['profession']
+        user.jobsApplied = data['jobsApplied']
+        user.links = data['links']
+        user.about = data['about']
+
+        user.save_to_db()
+
+        return {'message': 'Update successful!'}, 200
+
+    @jwt_required
+    def delete(self):
+
+        id = get_jwt_identity()
+
+        user = UserModel.find_by_id(id)
+        if not user:
+            return {'message': 'User Not Found'}, 404
+        Helper.del_applications_by_user(id)
+        user.delete_from_db()
+        return {'message': 'User deleted.'}, 200
 
 
 class UserLogin(Resource):
@@ -504,7 +588,7 @@ class ForgotUserPassword(Resource):
         receiver_email = user.email
 
         # print(otp)
-        user.send_otp_email(str(otp), receiver_email)
+        user.send_otp_email(str(otp), receiver_email, data['phonenumber'])
         return {'message': 'OTP sent'}, 200
 
 
@@ -552,7 +636,6 @@ class ResetUserPassword(Resource):
         user.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200
-
 
 
 # class Resume(Resource):

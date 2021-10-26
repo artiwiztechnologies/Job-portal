@@ -74,13 +74,33 @@ class UserModel(db.Model):
             'location': self.location,
             'profession': self.profession,
             'links': self.links,
-            #'jobsApplied': self.jobsApplied,
+            # 'jobsApplied': self.jobsApplied,
             'status': self.status,
             'resume': self.resume,
             'type': self.__tablename__,
             'about': self.about,
             'active': self.active,
             'expiry_date': self.expiry_date
+        }
+
+    def json1(self, applicantion):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'phonenumber': self.phonenumber,
+            'name': self.name,
+            'photoURL': self.photoURL,
+            'location': self.location,
+            'profession': self.profession,
+            'links': self.links,
+            # 'jobsApplied': self.jobsApplied,
+            'status': self.status,
+            'resume': self.resume,
+            'type': self.__tablename__,
+            'about': self.about,
+            'active': self.active,
+            'expiry_date': self.expiry_date,
+            'application': applicantion
         }
 
     def save_to_db(self):
@@ -128,7 +148,7 @@ class UserModel(db.Model):
                 sender_email, receiver_email, message.as_string()
             )
 
-    def send_otp_email(self, otp, receiver_email):
+    def send_otp_email(self, otp, receiver_email, phonenumber):
 
         # sender_email = "t8910ech@gmail.com"
         # password = "8910@tech"
@@ -140,11 +160,15 @@ class UserModel(db.Model):
 
         # html = Email._email(link)
 
-        html = """\
-            <p>Your OTP is {}.</p>
-            """.format(otp)
+        # html = """\
+        #     <p>Your OTP is {}.</p>
+        #     """.format(otp)
 
-        # html = OTP_email.OTP(otp)
+        try:
+            num = phonenumber[:2]+"******"+phonenumber[-2:]
+        except:
+            num = phonenumber
+        html = OTP_email.OTP(num, otp)
 
         # print(receiver_email)
         part2 = MIMEText(html, "html")

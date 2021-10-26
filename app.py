@@ -6,9 +6,9 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword
-from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers
+from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers, getJobCount
 from resources.applications import newApplication, Application, ByJobID, ByUserID, CompanyApplicants
 from resources.favorites import newFavorite, Favorite, getFavorites
 from resources.plans import Plan, PlansList, newPlan
@@ -112,7 +112,7 @@ def token():
 
 # user
 api.add_resource(UserRegister, '/register')
-api.add_resource(User, '/user/<int:id>')
+api.add_resource(User, '/user/<int:id>')  # delete to be removed later
 api.add_resource(UserLogin, '/login')
 api.add_resource(TokenRefresh, '/refresh')
 api.add_resource(UserLogout, '/logout')
@@ -141,6 +141,7 @@ api.add_resource(getCompanyPhoto, '/company/<string:path>')
 api.add_resource(ExpireCompany, '/company/check-expiration')
 api.add_resource(ForgotCompanyPassword, '/company/forgot-password')
 api.add_resource(ResetCompanyPassword, '/company/reset-password')
+api.add_resource(getCompanyCount, '/no-of-companies')
 
 
 # jobs
@@ -150,7 +151,7 @@ api.add_resource(JobsList, '/jobs-list')
 api.add_resource(companyJobs, '/company-jobs/<int:id>')
 api.add_resource(getAppliedJobs, '/appliedjobs')
 api.add_resource(getAppliedUsers, '/appliedusers/<int:job_id>')
-
+api.add_resource(getJobCount, '/no-of-jobs')
 
 # applications
 api.add_resource(newApplication, '/apply/<int:job_id>')

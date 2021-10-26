@@ -7,6 +7,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models.jobs import JobsModel
 from models.applications import ApplicationsModel
 from models.user import UserModel
+from models.helper import Helper
 from blacklist import BLACKLIST
 
 
@@ -87,6 +88,11 @@ class Job(Resource):
         if not job:
             return {'message': 'Job Not Found'}, 404
         job.delete_from_db()
+
+        Helper.del_applications_by_job(id)
+
+        # applications = [app.json() for app in ApplicationsModel.find_by_job_id(id)]
+
         return {'message': 'Job deleted.'}, 200
 
     @jwt_required
@@ -212,3 +218,13 @@ class getAppliedUsers(Resource):
             return {'users': users, 'message': 'Users applied to job {}'.format(job_id)}, 200
         except:
             return {'message': 'error'}, 500
+
+
+class getJobCount(Resource):
+
+    def get(self):
+        try:
+            total = JobsModel.find_count()
+            return {"total": total}, 200
+        except:
+            return {'message': 'Error'}, 500

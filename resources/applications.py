@@ -7,6 +7,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models.applications import ApplicationsModel
 from models.user import UserModel
 from models.jobs import JobsModel
+from models.company import CompanyModel
 
 
 class newApplication(Resource):
@@ -84,16 +85,20 @@ class CompanyApplicants(Resource):
     @jwt_required
     def get(self, company_id):
         try:
+            if not CompanyModel.find_by_id(company_id):
+                return {'message': 'Company not founs'}, 404
             applications_main = [application.json(
             ) for application in ApplicationsModel.find_by_company_id(company_id)]
+
             applications = ApplicationsModel.find_by_company_id(company_id)
+
             if not applications:
                 return {'message': 'No users have applied to this company'}, 401
 
             applicants = []
             for application in applications:
                 user = UserModel.find_by_id(application.user_id)
-                applicants.append(user.json())
-            return {'Applicants': applicants, 'Applications': applications_main}
+                applicants.append(user.json1(application.json()))
+            return {'Applicants': applicants}
         except:
             return {'message': 'Error'}, 500

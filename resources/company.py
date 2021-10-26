@@ -7,6 +7,7 @@ from random import randrange
 import datetime
 
 from models.company import CompanyModel
+from models.helper import Helper
 
 from blacklist import BLACKLIST
 
@@ -161,9 +162,11 @@ class CompanyPhoto(Resource):
                 company = CompanyModel.find_by_id(company_id)
 
                 if company.photoURL != "":
-                    print(UPLOAD_FOLDER + "/" + company.photoURL.split('/')[-1])
+                    print(UPLOAD_FOLDER + "/" +
+                          company.photoURL.split('/')[-1])
                     try:
-                        os.remove(UPLOAD_FOLDER + "/" + company.photoURL.split('/')[-1])
+                        os.remove(UPLOAD_FOLDER + "/" +
+                                  company.photoURL.split('/')[-1])
                     except:
                         pass
                     company.photoURL = ""
@@ -173,7 +176,7 @@ class CompanyPhoto(Resource):
                 URL = request.url_root[:-1]
                 print(True)
                 print(URL)
-                photoURL = "company"+ str(company_id) + "-" + filename
+                photoURL = "company" + str(company_id) + "-" + filename
 
                 file.save(os.path.join(UPLOAD_FOLDER, photoURL))
 
@@ -197,7 +200,7 @@ class CompanyPhoto(Resource):
             resp = jsonify(errors)
             resp.status_code = 500
             return resp
-    
+
     @jwt_required
     def delete(self):
         company_id = get_jwt_identity()
@@ -295,6 +298,9 @@ class Company(Resource):
         company = CompanyModel.find_by_id(id)
         if not company:
             return {'message': 'User Not Found'}, 404
+
+        Helper.del_applications_by_company(id)
+        Helper.del_jobs_by_company(id)
         company.delete_from_db()
         return {'message': 'User deleted.'}, 200
 
@@ -317,6 +323,100 @@ class Company(Resource):
         company.save_to_db()
 
         return {'message': 'Update successful!'}, 200
+
+
+class EditCompany(Resource):
+
+    @jwt_required
+    def put(self):
+
+        _company_parser = reqparse.RequestParser()
+
+        _company_parser.add_argument('name',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('phonenumber',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('email',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('location',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('about',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('links',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('about',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('established',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('companyType',
+                                     type=str,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+        _company_parser.add_argument('companySize',
+                                     type=int,
+                                     required=True,
+                                     help="This field cannot be blank."
+                                     )
+
+        data = _company_parser.parse_args()
+
+        id = get_jwt_identity()
+
+        if not CompanyModel.find_by_id(id):
+            return {'message': 'User not found.'}, 404
+        company = CompanyModel.find_by_id(id)
+
+        company.name = data['name']
+        company.phonenumber = data['phonenumber']
+        company.email = data['email']
+        company.location = data['location']
+        company.comapanySize = data['companySize']
+        company.about = data['about']
+        company.companyType = data['companyType']
+        company.links = data['links']
+
+        company.save_to_db()
+
+        return {'message': 'Update successful!'}, 200
+
+    @jwt_required
+    def delete(self):
+
+        id = get_jwt_identity()
+
+        company = CompanyModel.find_by_id(id)
+        if not company:
+            return {'message': 'User Not Found'}, 404
+
+        Helper.del_applications_by_company(id)
+        Helper.del_jobs_by_company(id)
+        company.delete_from_db()
+        return {'message': 'User deleted.'}, 200
 
 
 class CompanyLogin(Resource):
@@ -487,6 +587,18 @@ class ResetCompanyPassword(Resource):
         company.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200
+
+
+class getCompanyCount(Resource):
+
+    def get(self):
+        try:
+            total = CompanyModel.find_count()
+            return {"total": total}, 200
+        except:
+            return {'message': 'Error'}, 500
+
+# class Send()
 
 
 # def post(self):

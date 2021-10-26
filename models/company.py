@@ -88,7 +88,7 @@ class CompanyModel(db.Model):
         link = url_for('companyemailverification', token=token, _external=True)
 
         message = MIMEMultipart("alternative")
-        message["Subject"] = "Verfication email."
+        message["Subject"] = "Jobs Textile - Verfication email."
         message["From"] = sender_email
         message["To"] = receiver_email
 
@@ -125,7 +125,9 @@ class CompanyModel(db.Model):
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
 
-
+    @classmethod
+    def find_count(cls):
+        return cls.query.count()
 
     def send_otp_email(self, otp, receiver_email):
 
@@ -133,7 +135,7 @@ class CompanyModel(db.Model):
         # password = "8910@tech"
 
         message = MIMEMultipart("alternative")
-        message["Subject"] = "Reset password."
+        message["Subject"] = "Jobs Textile - OTP for Two Factor Authentication (2FA)."
         message["From"] = sender_email
         message["To"] = receiver_email
 

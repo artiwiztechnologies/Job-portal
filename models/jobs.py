@@ -77,5 +77,9 @@ class JobsModel(db.Model):
         return cls.query.all()
 
     @classmethod
+    def find_count(cls):
+        return cls.query.count()
+
+    @classmethod
     def find_jobs(cls, id):
         return cls.query.filter_by(company_id=id)

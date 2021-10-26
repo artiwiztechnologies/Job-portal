@@ -25,12 +25,18 @@ class ApplicationsModel(db.Model):
         self.company_id = company_id
 
     def json(self):
+        if JobsModel.find_by_id(self.job_id):
+            title = JobsModel.find_by_id(self.job_id).title
+        else:
+            title = "Job has been deleted."
+
         return {
             "id": self.id,
             "user_id": self.user_id,
             "user_email": self.user_email,
             "job_id": self.job_id,
             "company_id": self.company_id,
+            "job_title": title,
             "date": self.date
         }
 
