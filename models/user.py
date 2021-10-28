@@ -86,7 +86,7 @@ class UserModel(db.Model):
             'expiry_date': self.expiry_date
         }
 
-    def json1(self, applicantion):
+    def json1(self, application):
         return {
             'id': self.id,
             'email': self.email,
@@ -104,7 +104,7 @@ class UserModel(db.Model):
             'active': self.active,
             'skills': self.skills,
             'expiry_date': self.expiry_date,
-            'application': applicantion
+            'application_id': application
         }
 
     def save_to_db(self):

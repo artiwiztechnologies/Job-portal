@@ -655,19 +655,19 @@ class getUserFavorites(Resource):
 
         user_id = get_jwt_identity()
 
-        try:
-            favorites = FavoritesModel.find_by_user_id(user_id)
-            
-            if not favorites:
-                return {'message': 'No jobs.'}, 404
-            jobs = []
-            for favorite in favorites:
-                job = JobsModel.find_by_id(favorite.job_id)
-                jobs.append(job.json())
-            
-            return {"jobs": jobs}, 200
-        except:
-            return {'message': 'Internal Server Error'}, 500
+        # try:
+        favorites = FavoritesModel.find_by_user_id(user_id)
+        
+        if not favorites:
+            return {'message': 'No jobs.'}, 404
+        jobs = []
+        for favorite in favorites:
+            job = JobsModel.find_by_id(favorite.job_id)
+            jobs.append(job.json2(favorite.id))
+        
+        return {"jobs": jobs}, 200
+        # except:
+        #     return {'message': 'Internal Server Error'}, 500
 
 
 # class Resume(Resource):

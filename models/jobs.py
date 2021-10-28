@@ -56,6 +56,52 @@ class JobsModel(db.Model):
 
         }
 
+
+    def json1(self, app_id):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "company_id": self.company_id,
+            "description": self.description,
+            "application_id": app_id,
+            "available": self.available,
+            "job_type": self.job_type,
+            "salary": self.salary,
+            "career_level": self.career_level,
+            "role": self.role,
+            "skills": self.skills,
+            "date": self.date,
+            "photoURL": CompanyModel.find_by_id(self.company_id).photoURL,
+            "location": CompanyModel.find_by_id(self.company_id).location,
+            "company_name": CompanyModel.find_by_id(self.company_id).name,
+            "company_size": CompanyModel.find_by_id(self.company_id).companySize,
+            "company_type": CompanyModel.find_by_id(self.company_id).companyType
+
+        }
+
+    def json2(self, fav_id):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "company_id": self.company_id,
+            "description": self.description,
+            # "applicants": self.applicants,
+            "available": self.available,
+            "job_type": self.job_type,
+            "salary": self.salary,
+            "career_level": self.career_level,
+            "role": self.role,
+            "skills": self.skills,
+            "date": self.date,
+            "favorite_id": fav_id,
+            "photoURL": CompanyModel.find_by_id(self.company_id).photoURL,
+            "location": CompanyModel.find_by_id(self.company_id).location,
+            "company_name": CompanyModel.find_by_id(self.company_id).name,
+            "company_size": CompanyModel.find_by_id(self.company_id).companySize,
+            "company_type": CompanyModel.find_by_id(self.company_id).companyType
+
+        }
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()

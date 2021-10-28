@@ -196,7 +196,7 @@ class getAppliedJobs(Resource):
             print(applications)
             for application in applications:
                 job = JobsModel.find_by_id(application.job_id)
-                jobs.append(job.json())
+                jobs.append(job.json1(application.id))
             if not jobs:
                 return {'message': 'User has not applied to any jobs!'}, 400
             return {'Jobs': jobs, 'message': 'Jobs applied by user {}'.format(user_id)}, 200
@@ -213,7 +213,7 @@ class getAppliedUsers(Resource):
             applications = ApplicationsModel.find_by_job_id(job_id)
             for application in applications:
                 user = UserModel.find_by_id(application.user_id)
-                users.append(user.json())
+                users.append(user.json1(application.id))
             if not users:
                 return {'message': 'No user has applied to this job!'}, 400
             return {'users': users, 'message': 'Users applied to job {}'.format(job_id)}, 200

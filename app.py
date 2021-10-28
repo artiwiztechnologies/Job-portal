@@ -159,7 +159,7 @@ api.add_resource(newApplication, '/apply/<int:job_id>')
 api.add_resource(Application, '/application/<int:id>')
 api.add_resource(ByJobID, '/get-users/<int:job_id>')
 api.add_resource(ByUserID, '/get-jobs/<int:user_id>')
-api.add_resource(CompanyApplicants, '/company-applcants/<int:company_id>')
+api.add_resource(CompanyApplicants, '/company-applicants/<int:company_id>')
 
 # favorited
 api.add_resource(newFavorite, '/add-favorite/<int:job_id>')
