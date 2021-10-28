@@ -23,6 +23,8 @@ class newFavorite(Resource):
         else:
             data['user_email'] = UserModel.find_by_id(data['user_id']).email
             data['job_id'] = job_id
+            job = JobsModel.find_by_id(job_id)
+            data['company_id'] = job.company_id
             favorite = FavoritesModel(**data)
             favorite.save_to_db()
 

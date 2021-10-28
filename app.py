@@ -7,7 +7,7 @@ from flask_cors import CORS
 from db import db
 from blacklist import BLACKLIST
 from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword, getUserFavorites
 from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers, getJobCount
 from resources.applications import newApplication, Application, ByJobID, ByUserID, CompanyApplicants
 from resources.favorites import newFavorite, Favorite, getFavorites
@@ -125,6 +125,7 @@ api.add_resource(getResume, '/user-resume/<string:path>')
 api.add_resource(ExpireUser, '/user/check-expiration')
 api.add_resource(ForgotUserPassword, '/user/forgot-password')
 api.add_resource(ResetUserPassword, '/user/reset-password')
+api.add_resource(getUserFavorites, '/user/favorites')
 
 
 # company

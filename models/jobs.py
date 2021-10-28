@@ -12,7 +12,7 @@ class JobsModel(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     title = db.Column(db.String(80))
     description = db.Column(db.String(500))
-    applicants = db.Column(db.String())
+    applicants = db.Column(db.String()) # to be deleted
     available = db.Column(db.Boolean())
     date = db.Column(db.String, default=str(
         datetime.datetime.now()).split(' ')[0])
@@ -40,7 +40,7 @@ class JobsModel(db.Model):
             "title": self.title,
             "company_id": self.company_id,
             "description": self.description,
-            "applicants": self.applicants,
+            # "applicants": self.applicants,
             "available": self.available,
             "job_type": self.job_type,
             "salary": self.salary,
@@ -83,3 +83,11 @@ class JobsModel(db.Model):
     @classmethod
     def find_jobs(cls, id):
         return cls.query.filter_by(company_id=id)
+
+    @classmethod
+    def find_by_company_id(cls, company_id):
+        return cls.query.filter_by(company_id=company_id)
+
+    @classmethod
+    def find_job_user(cls, job_id, user_id):
+        return cls.query.filter_by(user_id=user_id, job_id=job_id).first()

@@ -4,6 +4,7 @@ import requests
 
 from models.user import UserModel
 from models.jobs import JobsModel
+from models.company import CompanyModel
 
 
 class FavoritesModel(db.Model):
@@ -13,13 +14,17 @@ class FavoritesModel(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user_email = db.Column(db.String(), db.ForeignKey('users.email'))
     job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
+    company_id = db.Column(db.Integer(), db.ForeignKey('company.id'))
     date = db.Column(db.String, default=str(
         datetime.datetime.now()).split(' ')[0])
 
-    def __init__(self, user_id, user_email, job_id):
+    def __init__(self, user_id, user_email, job_id, company_id):
+
+        job = JobsModel.find_by_id(job_id)
         self.user_id = user_id
         self.user_email = user_email
         self.job_id = job_id
+        self.company_id = job.company_id
 
     def json(self):
         return {
@@ -27,6 +32,7 @@ class FavoritesModel(db.Model):
             "user_id": self.user_id,
             "user_email": self.user_email,
             "job_id": self.job_id,
+            "company_id": self.company_id,
             "date": self.date
         }
 
@@ -57,3 +63,7 @@ class FavoritesModel(db.Model):
     @classmethod
     def find_by_job_user(cls, job_id, user_id):
         return cls.query.filter_by(job_id=job_id, user_id=user_id).first()
+
+    @classmethod
+    def find_by_company_id(cls, company_id):
+        return cls.query.filter_by(company_id=company_id)

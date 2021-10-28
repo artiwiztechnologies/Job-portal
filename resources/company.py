@@ -92,7 +92,7 @@ class CompanyRegister(Resource):
         _company_parser.add_argument('companySize',
                                      type=int,
                                      required=False,
-                                     default=int(0),
+                                     default=0,
                                      help="This field cannot be blank."
                                      )
         _company_parser.add_argument('status',
@@ -311,11 +311,13 @@ class Company(Resource):
             return {'message': 'User not found.'}, 404
         company = CompanyModel.find_by_id(id)
 
+        # print(company.com)
+
         company.name = data['name']
         company.phonenumber = data['phonenumber']
         company.email = data['email']
         company.location = data['location']
-        company.comapanySize = data['companySize']
+        company.companySize = data['companySize']
         company.about = data['about']
         company.companyType = data['companyType']
         company.links = data['links']
@@ -415,6 +417,7 @@ class EditCompany(Resource):
 
         Helper.del_applications_by_company(id)
         Helper.del_jobs_by_company(id)
+        Helper.del_favorites_by_company(id)
         company.delete_from_db()
         return {'message': 'User deleted.'}, 200
 
@@ -539,7 +542,7 @@ class ForgotCompanyPassword(Resource):
         receiver_email = company.email
 
         # print(otp)
-        company.send_otp_email(str(otp), receiver_email)
+        company.send_otp_email(str(otp), receiver_email, company.phonenumber)
         return {'message': 'OTP sent'}, 200
 
 

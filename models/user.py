@@ -5,6 +5,7 @@ from flask import Flask, request, url_for, render_template
 
 from templates.email import Email
 from templates.otp import OTP_email
+from templates.otp import OTP_email1
 
 import smtplib
 import ssl
@@ -48,11 +49,11 @@ class UserModel(db.Model):
     links = db.Column(db.String())
     jobsApplied = db.Column(
         db.String(), default="{'ids': [] }")  # have to remove
-    skills = db.Column(db.String())  # an array of skills
+    skills = db.Column(db.String(), default="")  # an array of skills
     about = db.Column(db.String())
     resume = db.Column(db.String(100), default="abcd")
 
-    def __init__(self, email, phonenumber, name, location, active, profession, links, about):
+    def __init__(self, email, phonenumber, name, location, active, profession, links, about, skills):
 
         self.email = email
         # self.password = password
@@ -63,6 +64,7 @@ class UserModel(db.Model):
         self.profession = profession
         self.links = links
         self.about = about
+        self.skills = skills
 
     def json(self):
         return {
@@ -80,6 +82,7 @@ class UserModel(db.Model):
             'type': self.__tablename__,
             'about': self.about,
             'active': self.active,
+            'skills': self.skills,
             'expiry_date': self.expiry_date
         }
 
@@ -99,6 +102,7 @@ class UserModel(db.Model):
             'type': self.__tablename__,
             'about': self.about,
             'active': self.active,
+            'skills': self.skills,
             'expiry_date': self.expiry_date,
             'application': applicantion
         }
@@ -168,8 +172,8 @@ class UserModel(db.Model):
             num = phonenumber[:2]+"******"+phonenumber[-2:]
         except:
             num = phonenumber
-        html = OTP_email.OTP(num, otp)
-
+        # html = OTP_email.OTP(num, otp)
+        html = OTP_email1.OTP()
         # print(receiver_email)
         part2 = MIMEText(html, "html")
 

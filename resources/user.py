@@ -15,6 +15,9 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 
 from models.user import UserModel
 from models.helper import Helper
+from models.favorites import FavoritesModel
+from models.jobs import JobsModel
+
 from blacklist import BLACKLIST
 
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
@@ -100,6 +103,12 @@ class UserRegister(Resource):
                                   default="",
                                   help="This field cannot be blank."
                                   )
+        _user_parser.add_argument('skills',
+                                  type=str,
+                                  required=False,
+                                  default="",
+                                  help="This field cannot be blank."
+                                  )
 
         data = _user_parser.parse_args()
         # print(data['phonenumber'])
@@ -111,7 +120,7 @@ class UserRegister(Resource):
             token = s.dumps(data['email'], salt='email-confirm')
 
             user = UserModel(data['email'], data['phonenumber'], data['name'], data['location'],
-                             data['active'], data['profession'], data['links'], data['about'])
+                             data['active'], data['profession'], data['links'], data['about'], data['skills'])
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
@@ -359,6 +368,7 @@ class User(Resource):
         if not user:
             return {'message': 'User Not Found'}, 404
         Helper.del_applications_by_user(id)
+        Helper.del_favorites_by_user(id)
         user.delete_from_db()
         return {'message': 'User deleted.'}, 200
 
@@ -459,6 +469,7 @@ class EditUser(Resource):
         if not user:
             return {'message': 'User Not Found'}, 404
         Helper.del_applications_by_user(id)
+        Helper.del_favorites_by_user(id)
         user.delete_from_db()
         return {'message': 'User deleted.'}, 200
 
@@ -636,6 +647,27 @@ class ResetUserPassword(Resource):
         user.save_to_db()
 
         return {'message': 'Password successfuly reset.'}, 200
+
+class getUserFavorites(Resource):
+
+    @jwt_required
+    def get(self):
+
+        user_id = get_jwt_identity()
+
+        try:
+            favorites = FavoritesModel.find_by_user_id(user_id)
+            
+            if not favorites:
+                return {'message': 'No jobs.'}, 404
+            jobs = []
+            for favorite in favorites:
+                job = JobsModel.find_by_id(favorite.job_id)
+                jobs.append(job.json())
+            
+            return {"jobs": jobs}, 200
+        except:
+            return {'message': 'Internal Server Error'}, 500
 
 
 # class Resume(Resource):

@@ -2,12 +2,15 @@ class OTP_email():
     def OTP(num, otp):
 
         html = """\
+            <!DOCTYPE html>
+        <html lang="en">
             <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.lordicon.com/libs/mssddfmo/lord-icon-2.1.0.js"></script>
     <style type="text/css">
         @media screen {{
             @font-face {{
@@ -123,7 +126,9 @@ class OTP_email():
                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
                     <tr>
                         <td bgcolor="#ffffff" align="center" valign="top" style="padding: 40px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; letter-spacing: 4px; line-height: 48px;">
-                            <h1 style="font-size: 48px; font-weight: 400; margin: 2;">Hello!</h1> <img src="https://img.icons8.com/material/125/00b074/so-so.png" width="125" height="120" style="display: block; border: 0px;" />
+                            <h1 style="font-size: 48px; font-weight: 400; margin: 2;">Hello!</h1>
+                            
+                             
                         </td>
                     </tr>
                 </table>
@@ -135,6 +140,12 @@ class OTP_email():
                     <tr>
                         <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 40px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
                             <p style="margin: 0;">Yout one time password(OTP) for the phone numnber {}. Never share this OTP with anyone else.</p>
+                            <lord-icon
+                                src="https://cdn.lordicon.com/huwchbks.json"
+                                trigger="loop"
+                                colors="primary:#121331,secondary:#08a88a"
+                                style="width:250px;height:250px">
+                            </lord-icon>
                         </td>
                     </tr>
                     <tr>
@@ -167,33 +178,44 @@ class OTP_email():
         </tr>
     </table>
 </body>
+</html>
         """.format(num, otp)
 
         return html
 
 
 class OTP_email1():
-    def OTP(otp):
+    def OTP():
         html = """\
-            <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
-            <div style="margin:50px auto;width:70%;padding:20px 0">
-                <div style="border-bottom:1px solid #eee">
-                <img src="logo-main-black.png" />
-                </div>
-                <p style="font-size:1.1em">Hi,</p>
-                <p>Thank you for choosing Your Brand. Use the following OTP to complete your Sign Up procedures. OTP is valid for 5 minutes</p>
-                <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">324457</h2>
-                <p style="font-size:0.9em;">Regards,<br />Your Brand</p>
-                <hr style="border:none;border-top:1px solid #eee" />
-                <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
-                <p>Your Brand Inc</p>
-                <p>1600 Amphitheatre Parkway</p>
-                <p>California</p>
-                </div>
-            </div>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <script src="https://cdn.lordicon.com/libs/mssddfmo/lord-icon-2.1.0.js"></script>
+                <title>Document</title>
+            </head>
+            <body>
+                <lord-icon
+                    src="https://cdn.lordicon.com/huwchbks.json"
+                    trigger="loop"
+                    colors="primary:#121331,secondary:#08a88a"
+                    style="width:250px;height:250px">
+                </lord-icon>
+
+                <img src="http://127.0.0.1:5005/user/lock.svg" />
+
+                <video width="320" height="240" autoplay loop>
+                <source src="http://127.0.0.1:5005/user/lock.mp4" type="video/mp4">
+                <source src="http://127.0.0.1:5005/user/lock.mp4" type="video/ogg">
+                Your browser does not support the video tag.
+                </video>
+            </body>
+            </html>
             """
 
         return html
 
 # <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Your Brand</a>
+# <img src="https://img.icons8.com/material/125/00b074/so-so.png" width="125" height="120" style="display: block; border: 0px;" />

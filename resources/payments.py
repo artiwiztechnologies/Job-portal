@@ -12,8 +12,16 @@ from models.user import UserModel
 from models.company import CompanyModel
 from models.plans import PlansModel
 
-key_id = "rzp_test_V7OA6RGtfz7ILD"
-key_secret = "7DQCW16JtDmORBaSxLrwArPh"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+key_id = os.getenv('KEY_ID')
+key_secret = os.getenv('KEY_SECRET')
+
+# key_id = "rzp_test_V7OA6RGtfz7ILD"
+# key_secret = "7DQCW16JtDmORBaSxLrwArPh"
 # const Razor_pay_key_id = "rzp_test_V7OA6RGtfz7ILD";
 # const Razor_pay_key_secret = "7DQCW16JtDmORBaSxLrwArPh";
 
@@ -54,7 +62,7 @@ class newPayment(Resource):
 
         key_data = data['razorpay_order_id'] + \
             "|" + data['razorpay_payment_id']
-        # signature = '5ed4bf66615c3468fa0a8eb684571dd14b5e14e146fef613c5ea8e9aed4f5a7e'
+
         signature_computed = hmac.new(
             key=key_secret.encode('utf-8'),
             msg=key_data.encode('utf-8'),

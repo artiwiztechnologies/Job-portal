@@ -4,6 +4,7 @@ import requests
 from flask import Flask, request, url_for
 
 from templates.email import Email
+from templates.otp import OTP_email
 
 import smtplib
 import ssl
@@ -17,9 +18,6 @@ load_dotenv()
 
 sender_email = os.getenv("SENDER_EMAIL")
 password = os.getenv("PASSWORD")
-
-# sender_email = "t8910ech@gmail.com"
-# password = "8910@tech"
 
 
 class CompanyModel(db.Model):
@@ -41,7 +39,7 @@ class CompanyModel(db.Model):
 
     photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
-    companySize = db.Column(db.Integer)
+    companySize = db.Column(db.Integer(), default=0)
     about = db.Column(db.String())
     links = db.Column(db.String())
     established = db.Column(db.String())
@@ -129,10 +127,8 @@ class CompanyModel(db.Model):
     def find_count(cls):
         return cls.query.count()
 
-    def send_otp_email(self, otp, receiver_email):
+    def send_otp_email(self, otp, receiver_email, phonenumber):
 
-        # sender_email = "t8910ech@gmail.com"
-        # password = "8910@tech"
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "Jobs Textile - OTP for Two Factor Authentication (2FA)."
@@ -141,11 +137,15 @@ class CompanyModel(db.Model):
 
         # html = Email._email(link)
 
-        html = """\
-            <p>Your OTP is {}.</p>
-            """.format(otp)
+        # html = """\
+        #     <p>Your OTP is {}.</p>
+        #     """.format(otp)
 
-        # html = OTP_email.OTP(otp)
+        try:
+            num = phonenumber[:2]+"******"+phonenumber[-2:]
+        except:
+            num = phonenumber
+        html = OTP_email.OTP(num, otp)
 
         # print(receiver_email)
         part2 = MIMEText(html, "html")

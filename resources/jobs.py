@@ -90,6 +90,7 @@ class Job(Resource):
         job.delete_from_db()
 
         Helper.del_applications_by_job(id)
+        Helper.del_favorites_by_job(id)
 
         # applications = [app.json() for app in ApplicationsModel.find_by_job_id(id)]
 
