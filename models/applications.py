@@ -71,3 +71,7 @@ class ApplicationsModel(db.Model):
     @classmethod
     def find_by_job_user(cls, job_id, user_id):
         return cls.query.filter_by(job_id=job_id, user_id=user_id).first()
+
+    @classmethod
+    def find_applicants_count(cls, job_id):
+        return cls.query.filter_by(job_id=job_id).count()

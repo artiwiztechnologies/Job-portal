@@ -57,13 +57,14 @@ class JobsModel(db.Model):
         }
 
 
-    def json1(self, app_id):
+    def json1(self, app_id, count):
         return {
             "id": self.id,
             "title": self.title,
             "company_id": self.company_id,
             "description": self.description,
             "application_id": app_id,
+            "count": count,
             "available": self.available,
             "job_type": self.job_type,
             "salary": self.salary,
