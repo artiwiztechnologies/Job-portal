@@ -8,7 +8,7 @@ import datetime
 
 from models.company import CompanyModel
 from models.helper import Helper
-
+from models.jobs import JobsModel
 from blacklist import BLACKLIST
 
 from flask import request, jsonify, send_file, send_from_directory, url_for, redirect
@@ -600,6 +600,25 @@ class getCompanyCount(Resource):
             return {"total": total}, 200
         except:
             return {'message': 'Error'}, 500
+
+
+class getJobsNames(Resource):
+    
+    @jwt_required
+    def get(self):
+
+        company_id = get_jwt_identity()
+        jobs = JobsModel.find_by_company_id(company_id)
+
+        if not jobs:
+            return {'message': 'No jobs posted.'}, 404
+        
+        titles = []
+
+        for job in jobs:
+            titles.append(job.title)
+
+        return {'titles': titles}, 200
 
 # class Send()
 

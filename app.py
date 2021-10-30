@@ -6,7 +6,7 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount, getJobsNames
 from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword, getUserFavorites
 from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers, getJobCount
 from resources.applications import newApplication, Application, ByJobID, ByUserID, CompanyApplicants
@@ -19,7 +19,7 @@ from resources.payments import newPayment
 app = Flask(__name__)
 CORS(app)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://karthik:karthikkaran@database-1.c3gbi1q1hlzf.us-east-2.rds.amazonaws.com:5432/otaupdatedb"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://dev:j4BxhN3aXWSH3DPE@textile-jobs-do-user-9768146-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
@@ -143,6 +143,8 @@ api.add_resource(ExpireCompany, '/company/check-expiration')
 api.add_resource(ForgotCompanyPassword, '/company/forgot-password')
 api.add_resource(ResetCompanyPassword, '/company/reset-password')
 api.add_resource(getCompanyCount, '/no-of-companies')
+api.add_resource(getJobsNames, '/job-titles')
+
 
 
 # jobs
