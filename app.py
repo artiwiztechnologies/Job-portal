@@ -21,8 +21,8 @@ from resources.support import newSupport
 app = Flask(__name__)
 CORS(app)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://dev:j4BxhN3aXWSH3DPE@textile-jobs-do-user-9768146-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://dev:show-password@textile-jobs-do-user-9768146-0.b.db.ondigitalocean.com:25060/production?sslmode=require"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['JWT_BLACKLIST_ENABLED'] = True  # enable blacklist feature
