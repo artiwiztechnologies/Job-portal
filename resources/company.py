@@ -9,6 +9,9 @@ import datetime
 from models.company import CompanyModel
 from models.helper import Helper
 from models.jobs import JobsModel
+from models.plans import PlansModel
+from models.applications import ApplicationsModel
+from models.user import UserModel
 from blacklist import BLACKLIST
 
 from flask import request, jsonify, send_file, send_from_directory, url_for, redirect
@@ -500,26 +503,6 @@ class CompanyTokenRefresh(Resource):
         return {'access_token': new_token}, 200
 
 
-class ExpireCompany(Resource):
-    @jwt_required
-    def post(self):
-        company_id = get_jwt_identity()
-        company = CompanyModel.find_by_id(company_id)
-        if company.active:
-
-            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
-            # today1 = "31-10-19"
-            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
-
-            if(today > company.expiry_date):
-                company.active = False
-                company.save_to_db()
-                return {'active': False, 'message': 'Subscription expired!'}
-
-            return {'active': True, 'message': 'Subscription not expired!'}
-        return {'active': False, 'message': 'No active subscription'}
-
-
 class ForgotCompanyPassword(Resource):
     def post(self):
         parser = reqparse.RequestParser()
@@ -603,7 +586,7 @@ class getCompanyCount(Resource):
 
 
 class getJobsNames(Resource):
-    
+
     @jwt_required
     def get(self):
 
@@ -612,7 +595,7 @@ class getJobsNames(Resource):
 
         if not jobs:
             return {'message': 'No jobs posted.'}, 404
-        
+
         titles = []
 
         for job in jobs:
@@ -620,57 +603,62 @@ class getJobsNames(Resource):
 
         return {'titles': titles}, 200
 
-# class Send()
+
+class CheckCompany(Resource):
+
+    @jwt_required
+    def get(self):
+
+        company_id = get_jwt_identity()
+
+        company = CompanyModel.find_by_id(company_id)
+
+        if not company:
+            return {'message': 'No such company.'}, 404
+
+        # if company.active:
+
+        #     today1 = str(datetime.datetime.now()).split(' ')[0][2:]
+        #     # today1 = "31-10-19"
+        #     today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
+
+        #     d = company.expiry_date
+        #     d1 = datetime.date(int(d[:4]), int(d[5:7]), int(d[8:10]))
+        #     d2 = datetime.date(int(today[:4]), int(
+        #         today[5:7]), int(today[8:10]))
+
+        #     delta = d1-d2
+
+        #     if(today > company.expiry_date):
+        #         company.active = False
+        #         company.save_to_db()
+
+        # if company.active:
+        #     plan = PlansModel.find_by_id(company.plan_id)
+        #     return {'status': company.status, 'active': company.active, 'days': delta.days, "plan_name": plan.plan_name}, 200
+        return {'status': company.status, 'active': company.active}, 200
 
 
-# def post(self):
+class Applicants(Resource):
 
-#         if 'file' not in request.files:
-#             return {'message': 'No file uploaded!'}, 400
+    @jwt_required
+    def get(self):
+        try:
+            company_id = get_jwt_identity()
+            if not CompanyModel.find_by_id(company_id):
+                return {'message': 'Company not founs'}, 404
+            applications_main = [application.json(
+            ) for application in ApplicationsModel.find_by_company_id(company_id)]
 
-#         files = request.files.getlist('file')
-#         errors = {}
-#         success = False
-#         for file in files:
-#             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
-#                 company_id = get_jwt_identity()
+            applications = ApplicationsModel.find_by_company_id(company_id)
 
-#                 # filename = secure_filename(file.filename)
-#                 ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-#                 print(ext)
-#                 # filename = str(user_id)+".png"
+            if not applications:
+                return {'message': 'No users have applied to this company'}, 401
 
-#                 filename = str(company_id)+"."+ext
-#                 for EXT in ALLOWED_EXTENSIONS:
-#                     path = str(company_id)+"."+EXT
-#                     try:
-#                         send_from_directory(UPLOAD_FOLDER, path=path)
-#                         print(EXT)
-#                         delete_photo(EXT)
-#                     except:
-#                         print(False)
-#                 file.save(os.path.join(UPLOAD_FOLDER, filename))
-#                 URL = request.url_root[:-1]
-#                 photoURL = URL+"/company/"+filename
-
-#                 company = CompanyModel.find_by_id(company_id)
-#                 company.photoURL = photoURL
-#                 company.save_to_db()
-#                 success = True
-
-#             else:
-#                 errors[file.filename] = 'File type is not allowed'
-
-#         if success and errors:
-#             errors['message'] = 'File(s) successfully uploaded'
-#             resp = jsonify(errors)
-#             resp.status_code = 500
-#             return resp
-#         if success:
-#             resp = jsonify({'message': 'Files successfully uploaded'})
-#             resp.status_code = 201
-#             return {'message': "Success", "photoURL": photoURL}
-#         else:
-#             resp = jsonify(errors)
-#             resp.status_code = 500
-#             return resp
+            applicants = []
+            for application in applications:
+                user = UserModel.find_by_id(application.user_id)
+                applicants.append(user.json1(application.json()))
+            return {'Applicants': applicants}
+        except:
+            return {'message': 'Error'}, 500

@@ -19,15 +19,23 @@ class newApplication(Resource):
         data = {}
         data['user_id'] = get_jwt_identity()
 
-        if ApplicationsModel.find_by_job_user(job_id, data['user_id']):
+        application = ApplicationsModel.find_by_job_user(
+            job_id, data['user_id'])
+
+        if application and application.status == "applied":
             return {'message': 'Already applied to this job!'}, 400
         else:
             user = UserModel.find_by_id(data['user_id'])
+            data['user_name'] = user.name
             data['user_email'] = user.email
             data['job_id'] = job_id
+
             job = JobsModel.find_by_id(job_id)
             data['company_id'] = job.company_id
-            print(data['company_id'])
+
+            company = CompanyModel.find_by_id(job.company_id)
+            data['company_name'] = company.name
+
             application = ApplicationsModel(**data)
             application.save_to_db()
 
@@ -80,25 +88,77 @@ class ByUserID(Resource):
             return {'message': 'Error'}, 500
 
 
-class CompanyApplicants(Resource):
+class RejectApplication(Resource):
 
     @jwt_required
-    def get(self, company_id):
-        try:
-            if not CompanyModel.find_by_id(company_id):
-                return {'message': 'Company not founs'}, 404
-            applications_main = [application.json(
-            ) for application in ApplicationsModel.find_by_company_id(company_id)]
+    def get(self, id):
 
-            applications = ApplicationsModel.find_by_company_id(company_id)
+        application = ApplicationsModel.find_by_id(id)
 
-            if not applications:
-                return {'message': 'No users have applied to this company'}, 401
+        if not application:
+            return {'message': 'Application not found.'}, 404
 
-            applicants = []
-            for application in applications:
-                user = UserModel.find_by_id(application.user_id)
-                applicants.append(user.json1(application.json()))
-            return {'Applicants': applicants}
-        except:
-            return {'message': 'Error'}, 500
+        if application.status == "rejected":
+            return {'message': 'Application already rejected.'}, 400
+
+        user = UserModel.find_by_id(application.user_id)
+
+        if not user:
+            return {'message': 'User not found.'}, 404
+
+        job = JobsModel.find_by_id(application.job_id)
+
+        application.send_rejection_email(
+            user, job.title, application.company_name)
+
+        application.status = "rejected"
+        application.save_to_db()
+
+        return {'message': 'Application rejected.'}, 200
+
+
+class AcceptApplication(Resource):
+
+    @jwt_required
+    def get(self, id):
+
+        application = ApplicationsModel.find_by_id(id)
+
+        if not application:
+            return {'message': 'Application not found.'}, 404
+
+        user = UserModel.find_by_id(application.user_id)
+
+        if not user:
+            return {'message': 'User not found.'}, 404
+
+        application.send_rejection_email(user)
+
+        application.status = "accepted"
+        application.save_to_db()
+
+        return {'message': 'Application accepted.'}, 200
+
+
+# class CompanyApplicants(Resource):
+
+#     @jwt_required
+#     def get(self, company_id):
+#         try:
+#             if not CompanyModel.find_by_id(company_id):
+#                 return {'message': 'Company not founs'}, 404
+#             applications_main = [application.json(
+#             ) for application in ApplicationsModel.find_by_company_id(company_id)]
+
+#             applications = ApplicationsModel.find_by_company_id(company_id)
+
+#             if not applications:
+#                 return {'message': 'No users have applied to this company'}, 401
+
+#             applicants = []
+#             for application in applications:
+#                 user = UserModel.find_by_id(application.user_id)
+#                 applicants.append(user.json1(application.json()))
+#             return {'Applicants': applicants}
+#         except:
+#             return {'message': 'Error'}, 500

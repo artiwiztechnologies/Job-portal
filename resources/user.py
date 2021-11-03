@@ -17,6 +17,9 @@ from models.user import UserModel
 from models.helper import Helper
 from models.favorites import FavoritesModel
 from models.jobs import JobsModel
+from models.company import CompanyModel
+from models.applications import ApplicationsModel
+from models.plans import PlansModel
 
 from blacklist import BLACKLIST
 
@@ -126,7 +129,7 @@ class UserRegister(Resource):
             user.save_to_db()
             user.send_verification_email(data['email'], token)
 
-            return {"message": "User created successfully."}, 201
+            return {"message": "User created successfully."}, 200
 
 
 class emailVerification(Resource):
@@ -554,29 +557,6 @@ class TokenRefresh(Resource):
         return {'access_token': new_token}, 200
 
 
-class ExpireUser(Resource):
-    @jwt_required
-    def post(self):
-        user_id = get_jwt_identity()
-        user = UserModel.find_by_id(user_id)
-        if user.active:
-
-            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
-            # today1 = "31-10-19"
-            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
-
-            # expiry_date = datetime.datetime.strptime(
-            #     user.expiry_date[2:10], "%y-%m-%d")
-
-            if(today > user.expiry_date):
-                user.active = False
-                user.save_to_db()
-                return {'active': False, 'message': 'Subscription expired!'}
-
-            return {'active': True, 'message': 'Subscription not expired!'}
-        return {'active': False, 'message': 'No active subscription'}
-
-
 class ForgotUserPassword(Resource):
     def post(self):
         parser = reqparse.RequestParser()
@@ -648,6 +628,7 @@ class ResetUserPassword(Resource):
 
         return {'message': 'Password successfuly reset.'}, 200
 
+
 class getUserFavorites(Resource):
 
     @jwt_required
@@ -655,19 +636,80 @@ class getUserFavorites(Resource):
 
         user_id = get_jwt_identity()
 
-        # try:
-        favorites = FavoritesModel.find_by_user_id(user_id)
-        
-        if not favorites:
-            return {'message': 'No jobs.'}, 404
-        jobs = []
-        for favorite in favorites:
-            job = JobsModel.find_by_id(favorite.job_id)
-            jobs.append(job.json2(favorite.id))
-        
-        return {"jobs": jobs}, 200
-        # except:
-        #     return {'message': 'Internal Server Error'}, 500
+        try:
+            favorites = FavoritesModel.find_by_user_id(user_id)
+
+            if not favorites:
+                return {'message': 'No jobs.'}, 404
+            jobs = []
+            for favorite in favorites:
+                job = JobsModel.find_by_id(favorite.job_id)
+                jobs.append(job.json2(favorite.id))
+
+            return {"jobs": jobs}, 200
+        except:
+            return {'message': 'Internal Server Error'}, 500
+
+
+class CheckUser(Resource):
+
+    @jwt_required
+    def get(self):
+
+        user_id = get_jwt_identity()
+
+        user = UserModel.find_by_id(user_id)
+
+        if not user:
+            return {'message': 'No such user.'}, 404
+
+        if user.active:
+
+            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
+            # today1 = "31-10-19"
+            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
+
+            print(user.expiry_date, today)
+
+            d = user.expiry_date
+            d1 = datetime.date(int(d[:4]), int(d[5:7]), int(d[8:10]))
+            d2 = datetime.date(int(today[:4]), int(
+                today[5:7]), int(today[8:10]))
+            print(d1)
+            delta = d1-d2
+            print(delta.days)
+
+            if(today > user.expiry_date):
+                user.active = False
+                user.save_to_db()
+
+        if user.active:
+            plan = PlansModel.find_by_id(user.plan_id)
+            return {'status': user.status, 'active': user.active, 'days': delta.days, "plan_name": plan.plan_name}, 200
+        return {'status': user.status, 'active': user.active}, 200
+
+
+class ExpireUser(Resource):
+    @jwt_required
+    def post(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        if user.active:
+
+            today1 = str(datetime.datetime.now()).split(' ')[0][2:]
+            # today1 = "31-10-19"
+            today = str(datetime.datetime.strptime(today1, "%y-%m-%d"))
+
+            # expiry_date = datetime.datetime.strptime(
+            #     user.expiry_date[2:10], "%y-%m-%d")
+
+            if(today > user.expiry_date):
+                user.active = False
+                user.save_to_db()
+                return {'active': False, 'message': 'Subscription expired!'}
+
+            return {'active': True, 'message': 'Subscription not expired!'}
+        return {'active': False, 'message': 'No active subscription'}
 
 
 # class Resume(Resource):

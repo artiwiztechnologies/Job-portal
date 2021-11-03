@@ -6,6 +6,7 @@ from flask import Flask, request, url_for, render_template
 from templates.email import Email
 from templates.otp import OTP_email
 from templates.otp import OTP_email1
+from models.plans import PlansModel
 
 import smtplib
 import ssl
@@ -42,6 +43,7 @@ class UserModel(db.Model):
     created_date = db.Column(db.String())  # have to remove
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
     otp = db.Column(db.String(6))
+    plan_id = db.Column(db.Integer())
 
     photoURL = db.Column(db.String(100), default="abcd")
     profession = db.Column(db.String())
@@ -107,6 +109,29 @@ class UserModel(db.Model):
             'application_id': application
         }
 
+    def json_for_admin(self):
+
+        if self.status == 2:
+            STATUS = 'Active'
+        elif self.status == 1:
+            STATUS = 'Inactive'
+
+        # if self.active:
+        #     SUB = "Subscribed"
+        # else:
+        #     SUB = "Not subscribed"
+
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phonenumber': self.phonenumber,
+            'email': self.email,
+            'expiry_date': self.expiry_date[:10] if self.expiry_date else "-",
+            'plan_id': self.plan_id if self.plan_id else "-",
+            'status': STATUS,
+            'subs': "Subscribed" if self.plan_id else "Not subscribed"
+        }
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
@@ -114,6 +139,10 @@ class UserModel(db.Model):
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
+
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
 
     @classmethod
     def find_by_email(cls, email):
@@ -126,6 +155,10 @@ class UserModel(db.Model):
     @classmethod
     def find_by_id(cls, id):
         return cls.query.filter_by(id=id).first()
+
+    @classmethod
+    def find_count(cls):
+        return cls.query.count()
 
     def send_verification_email(self, receiver_email, token):
 
@@ -154,19 +187,12 @@ class UserModel(db.Model):
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
 
-        # sender_email = "t8910ech@gmail.com"
-        # password = "8910@tech"
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "Reset password."
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # html = Email._email(link)
-
-        # html = """\
-        #     <p>Your OTP is {}.</p>
-        #     """.format(otp)
 
         try:
             num = phonenumber[:2]+"******"+phonenumber[-2:]

@@ -6,15 +6,17 @@ from flask_cors import CORS
 
 from db import db
 from blacklist import BLACKLIST
-from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ExpireCompany, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount, getJobsNames
-from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword, getUserFavorites
+from resources.company import CompanyRegister, Company, CompanyLogin, CompanyTokenRefresh, CompanyLogout, companyemailVerification, CompanyPhoto, getCompanyPhoto, resendCompanyEmail, ForgotCompanyPassword, ResetCompanyPassword, getCompanyCount, getJobsNames, CheckCompany, Applicants
+from resources.user import UserRegister, User, UserLogin, TokenRefresh, UserLogout, emailVerification, UserPhoto, getUserPhoto, Resume, getResume, resendEmail, ExpireUser, ForgotUserPassword, ResetUserPassword, getUserFavorites, CheckUser
 from resources.jobs import addJob, Job, JobsList, companyJobs, getAppliedJobs, getAppliedUsers, getJobCount
-from resources.applications import newApplication, Application, ByJobID, ByUserID, CompanyApplicants
+from resources.applications import newApplication, Application, ByJobID, ByUserID, RejectApplication
 from resources.favorites import newFavorite, Favorite, getFavorites
 from resources.plans import Plan, PlansList, newPlan
 from resources.subscriptions import newSubscription, Subscription, SubscriptionsByIdList, DeactivateS
 from resources.orders import newOrder, OrdersList
-from resources.payments import newPayment
+from resources.payments import newPayment, PaymentsList
+from resources.admin import newAdmin, AdminLogin, SendMetrics
+from resources.support import newSupport
 
 app = Flask(__name__)
 CORS(app)
@@ -110,6 +112,12 @@ def token():
     return render_template('token_expired.html')
 
 
+# admin
+
+api.add_resource(newAdmin, '/admin-register')
+api.add_resource(AdminLogin, '/admin-login')
+api.add_resource(SendMetrics, "/admin-data")
+
 # user
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:id>')  # delete to be removed later
@@ -126,7 +134,7 @@ api.add_resource(ExpireUser, '/user/check-expiration')
 api.add_resource(ForgotUserPassword, '/user/forgot-password')
 api.add_resource(ResetUserPassword, '/user/reset-password')
 api.add_resource(getUserFavorites, '/user/favorites')
-
+api.add_resource(CheckUser, '/check-user')
 
 # company
 api.add_resource(CompanyRegister, '/companyregister')
@@ -139,12 +147,13 @@ api.add_resource(companyemailVerification,
 api.add_resource(resendCompanyEmail, '/resendcompanyemail/<int:id>')
 api.add_resource(CompanyPhoto, '/uploadcompanyphoto')
 api.add_resource(getCompanyPhoto, '/company/<string:path>')
-api.add_resource(ExpireCompany, '/company/check-expiration')
+# api.add_resource(ExpireCompany, '/company/check-expiration')
 api.add_resource(ForgotCompanyPassword, '/company/forgot-password')
 api.add_resource(ResetCompanyPassword, '/company/reset-password')
 api.add_resource(getCompanyCount, '/no-of-companies')
 api.add_resource(getJobsNames, '/job-titles')
-
+api.add_resource(CheckCompany, '/check-company')
+api.add_resource(Applicants, '/applicants')
 
 
 # jobs
@@ -161,7 +170,7 @@ api.add_resource(newApplication, '/apply/<int:job_id>')
 api.add_resource(Application, '/application/<int:id>')
 api.add_resource(ByJobID, '/get-users/<int:job_id>')
 api.add_resource(ByUserID, '/get-jobs/<int:user_id>')
-api.add_resource(CompanyApplicants, '/company-applicants/<int:company_id>')
+api.add_resource(RejectApplication, '/reject-application/<int:id>')
 
 # favorited
 api.add_resource(newFavorite, '/add-favorite/<int:job_id>')
@@ -189,6 +198,10 @@ api.add_resource(OrdersList, '/orders-list')
 
 # payment
 api.add_resource(newPayment, '/new-payment')
+api.add_resource(PaymentsList, '/payments-list')
+
+# support
+api.add_resource(newSupport, '/raise-issue')
 
 if __name__ == '__main__':
     db.init_app(app)

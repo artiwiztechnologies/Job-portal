@@ -197,7 +197,7 @@ class getAppliedJobs(Resource):
             for application in applications:
                 job = JobsModel.find_by_id(application.job_id)
                 count = ApplicationsModel.find_applicants_count(application.job_id)
-                jobs.append(job.json1(application.id, count))
+                jobs.append(job.json1(application, count))
             if not jobs:
                 return {'message': 'User has not applied to any jobs!'}, 400
             return {'Jobs': jobs, 'message': 'Jobs applied by user {}'.format(user_id)}, 200

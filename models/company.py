@@ -29,13 +29,14 @@ class CompanyModel(db.Model):
     phonenumber = db.Column(db.String())
     email = db.Column(db.String())
     password = db.Column(db.String())
-    active = db.Column(db.Boolean(), default=False)
+    active = db.Column(db.Boolean(), default=True)
     subscription_id = db.Column(db.String())
     expiry_date = db.Column(db.String())
     created_date = db.Column(db.String())
     status = db.Column(db.Integer)
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
     otp = db.Column(db.String(6))
+    plan_id = db.Column(db.Integer())
 
     photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
@@ -128,7 +129,6 @@ class CompanyModel(db.Model):
         return cls.query.count()
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
-
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "Jobs Textile - OTP for Two Factor Authentication (2FA)."

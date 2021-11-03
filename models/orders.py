@@ -7,14 +7,14 @@ class OrdersModel(db.Model):
 
     __tablename__ = "orders"
 
-    #id = db.Column(db.Integer(), primary_key=True)
-    oid = db.Column(db.Integer(), primary_key=True)
+    oid = db.Column(db.String(6), primary_key=True)
     user_id = db.Column(db.Integer())
     email = db.Column(db.String())
     user_type = db.Column(db.String())
     plan_id = db.Column(db.Integer())
+    # _type = db.Column(db.String())
 
-    _id = db.Column(db.String())
+    order_id = db.Column(db.String())
     entity = db.Column(db.String())
     amount = db.Column(db.Integer())
     amount_paid = db.Column(db.Integer())
@@ -28,14 +28,15 @@ class OrdersModel(db.Model):
 
     # offer_id, notes, plan_id not stored in db.
 
-    def __init__(self, user_id, email, user_type, id, entity, amount, amount_paid, amount_due, currency, receipt, status, attempts, created_at, offer_id, notes, plan_id):
+    def __init__(self, oid, user_id, email, user_type, id, entity, amount, amount_paid, amount_due, currency, receipt, status, attempts, created_at, offer_id, notes, plan_id):
 
+        self.oid = oid
         self.user_id = user_id
         self.email = email
         self.user_type = user_type
         self.plan_id = plan_id
 
-        self._id = id
+        self.order_id = id
         self.entity = entity
         self.amount = amount
         self.amount_paid = amount_paid
@@ -56,11 +57,11 @@ class OrdersModel(db.Model):
             "user_type": self.user_type,
             'plan_id': self.plan_id,
 
-            "order_id": self._id,
+            "order_id": self.order_id,
             "entity": self.entity,
-            "amount": self.amount,
-            "amount_paid": self.amount_paid,
-            "amount_due": self.amount_due,
+            "amount": self.amount/100,
+            "amount_paid": self.amount_paid/100,
+            "amount_due": self.amount_due/100,
             "currency": self.currency,
             "receipt": self.receipt,
             "status": self.status,
@@ -77,12 +78,16 @@ class OrdersModel(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by_id(cls, id):
-        return cls.query.filter_by(id=id).first()
+    def find_by_id(cls, oid):
+        return cls.query.filter_by(oid=oid).first()
 
     @classmethod
     def find_all(cls):
         return cls.query.all()
+
+    @classmethod
+    def find_by_orderid(cls, orderid):
+        return cls.query.filter_by(order_id=orderid).first()
 
 
 {

@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
 from werkzeug.security import safe_str_cmp
-import random
+from random import randrange
 import requests
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, jwt_required, get_raw_jwt
 import datetime
@@ -11,17 +11,20 @@ import hmac
 from models.user import UserModel
 from models.company import CompanyModel
 from models.plans import PlansModel
+from models.payments import PaymentsModel
+from models.orders import OrdersModel
+from models.admin import AdminModel
 
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-key_id = os.getenv('KEY_ID')
-key_secret = os.getenv('KEY_SECRET')
+# key_id = os.getenv('KEY_ID')
+# key_secret = os.getenv('KEY_SECRET')
 
-# key_id = "rzp_test_V7OA6RGtfz7ILD"
-# key_secret = "7DQCW16JtDmORBaSxLrwArPh"
+key_id = "rzp_test_V7OA6RGtfz7ILD"
+key_secret = "7DQCW16JtDmORBaSxLrwArPh"
 # const Razor_pay_key_id = "rzp_test_V7OA6RGtfz7ILD";
 # const Razor_pay_key_secret = "7DQCW16JtDmORBaSxLrwArPh";
 
@@ -47,7 +50,7 @@ class newPayment(Resource):
                             required=True,
                             help="This field cannot be blank."
                             )
-        parser.add_argument('type',
+        parser.add_argument('user_type',
                             type=str,
                             required=True,
                             help="This field cannot be blank."
@@ -68,18 +71,35 @@ class newPayment(Resource):
             msg=key_data.encode('utf-8'),
             digestmod=hashlib.sha256
         ).hexdigest()
-        print(signature_computed)
-        print(data['razorpay_signature'])
+
         if hmac.compare_digest(data['razorpay_signature'], signature_computed):
 
             jwt_id = get_jwt_identity()
 
             plan = PlansModel.find_by_id(data["plan_id"])
 
+            pid = randrange(100000, 999999)
+            while True:
+                if not PaymentsModel.find_by_pid(pid):
+                    break
+                else:
+                    pid = randrange(100000, 999999)
+
+            # print(oid)
+
+            data['pid'] = pid
+
+            order = OrdersModel.find_by_orderid(data['razorpay_order_id'])
+            print(order.oid)
+            data['oid'] = order.oid
+
+            if PaymentsModel.find_by_oid(order.oid):
+                return {'message': 'Already verified. '}
+
             if not plan:
                 return {'message': 'Plan not available.'}, 404
 
-            if data['type'] == "users":
+            if data['user_type'] == "users":
                 user = UserModel.find_by_id(jwt_id)
 
                 if not user:
@@ -92,8 +112,18 @@ class newPayment(Resource):
                 expiry_date = date2 + datetime.timedelta(days=plan.duration)
 
                 user.expiry_date = expiry_date
+                user.plan_id = data['plan_id']
 
                 user.save_to_db()
+
+                data['user_id'] = user.id
+                data['email'] = user.email
+                data['phonenumber'] = user.phonenumber
+
+                payment = PaymentsModel(**data)
+                
+                payment.save_to_db()
+
             else:
                 company = CompanyModel.find_by_id(jwt_id)
 
@@ -107,12 +137,31 @@ class newPayment(Resource):
                 expiry_date = date2 + datetime.timedelta(days=plan.duration)
 
                 company.expiry_date = expiry_date
+                company.plan_id = data['plan_id']
 
                 company.save_to_db()
 
             return {'message': 'Valid payment.'}, 200
         else:
             return {'message': 'Invalid payment.'}, 400
+
+
+class PaymentsList(Resource):
+
+    @jwt_required
+    def get(self):
+        try:
+            jwt_id = get_jwt_identity()
+            admin = AdminModel.find_by_id(jwt_id)
+            if not admin:
+                return {'message': 'Not an admin.'}, 401
+            if admin.status != 3:
+                return {'message': 'Not an admin.'}, 401
+            payments = [payment.json() for payment in PaymentsModel.find_all()]
+
+            return {'payments': payments}, 200
+        except:
+            return {'message': 'Internal server error.'}, 500
 
 
 # {
