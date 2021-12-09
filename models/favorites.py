@@ -11,10 +11,10 @@ class FavoritesModel(db.Model):
     __tablename__ = "favorites"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user_email = db.Column(db.String(), db.ForeignKey('users.email'))
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
-    company_id = db.Column(db.Integer(), db.ForeignKey('company.id'))
+    user_id = db.Column(db.Integer())
+    user_email = db.Column(db.String())
+    job_id = db.Column(db.Integer())
+    company_id = db.Column(db.Integer())
     date = db.Column(db.String, default=str(
         datetime.datetime.now()).split(' ')[0])
 
@@ -35,7 +35,6 @@ class FavoritesModel(db.Model):
             "company_id": self.company_id,
             "date": self.date
         }
-
 
     def save_to_db(self):
         db.session.add(self)

@@ -13,16 +13,18 @@ from resources.applications import newApplication, Application, ByJobID, ByUserI
 from resources.favorites import newFavorite, Favorite, getFavorites
 from resources.plans import Plan, PlansList, newPlan
 from resources.subscriptions import newSubscription, Subscription, SubscriptionsByIdList, DeactivateS
-from resources.orders import newOrder, OrdersList
+from resources.orders import newOrder, OrdersList, FreeTrial
 from resources.payments import newPayment, PaymentsList
 from resources.admin import newAdmin, AdminLogin, SendMetrics
 from resources.support import newSupport
+from resources.questions import newQuestion, Question, QuestionsList, PostedQuestions
+from resources.comments import newComment
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://dev:show-password@textile-jobs-do-user-9768146-0.b.db.ondigitalocean.com:25060/production?sslmode=require"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://dev:show-password@textile-jobs-do-user-9768146-0.b.db.ondigitalocean.com:25060/production?sslmode=require"
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['JWT_BLACKLIST_ENABLED'] = True  # enable blacklist feature
@@ -194,7 +196,7 @@ api.add_resource(DeactivateS, '/deactivate/<int:id>')
 # order
 api.add_resource(newOrder, '/new-order')
 api.add_resource(OrdersList, '/orders-list')
-
+api.add_resource(FreeTrial, '/free-trial')
 
 # payment
 api.add_resource(newPayment, '/new-payment')
@@ -202,6 +204,17 @@ api.add_resource(PaymentsList, '/payments-list')
 
 # support
 api.add_resource(newSupport, '/raise-issue')
+
+# questions
+api.add_resource(newQuestion, '/post-question')
+api.add_resource(Question, '/question/<int:id>')
+api.add_resource(QuestionsList, '/question-list')
+api.add_resource(PostedQuestions, '/posted-questions/<string:user_type>')
+
+# comments
+
+api.add_resource(newComment, '/post-comment')
+
 
 if __name__ == '__main__':
     db.init_app(app)

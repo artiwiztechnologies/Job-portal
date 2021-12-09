@@ -27,6 +27,21 @@ class newPlan(Resource):
                             required=True,
                             help="This field cannot be blank."
                             )
+        parser.add_argument('description',
+                            type=str,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('trial',
+                            type=bool,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
+        parser.add_argument('tax',
+                            type=int,
+                            required=True,
+                            help="This field cannot be blank."
+                            )
 
         data = parser.parse_args()
         if PlansModel.find_by_plan_name(data['plan_name']):

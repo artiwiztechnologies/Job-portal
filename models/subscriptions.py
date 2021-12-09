@@ -8,7 +8,7 @@ class SubscriptionsModel(db.Model):
     __tablename__ = "subscriptions"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer)
     plan = db.Column(db.String())
     start_date = db.Column(db.String())
     end_date = db.Column(db.String())

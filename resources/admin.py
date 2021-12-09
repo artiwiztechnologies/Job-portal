@@ -119,8 +119,9 @@ class SendMetrics(Resource):
             no_jobs = JobsModel.find_count()
             no_applications = ApplicationsModel.find_count()
             users = [user.json_for_admin() for user in UserModel.find_all()]
+            companies = [company.json_for_admin() for company in CompanyModel.find_all()]
 
-            return {'users': no_users, 'companies': no_companies, 'jobs': no_jobs, 'applications': no_applications, 'users_data': users}
+            return {'users': no_users, 'companies': no_companies, 'jobs': no_jobs, 'applications': no_applications, 'users_data': users, "companies_data": companies}
 
         except:
             return {'message': 'Error'}, 500

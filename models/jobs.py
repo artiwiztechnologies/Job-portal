@@ -9,7 +9,7 @@ class JobsModel(db.Model):
     __tablename__ = "jobs"
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+    company_id = db.Column(db.Integer())
     title = db.Column(db.String(80))
     description = db.Column(db.String(500))
     applicants = db.Column(db.String()) # to be deleted

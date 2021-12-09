@@ -617,8 +617,8 @@ class ResetUserPassword(Resource):
         if data['otp'] != user.otp:
             return {'message': 'Wrong OTP!'}, 400
 
-        if data['oldpassword'] != user.password:
-            return {'message': 'Wrong password!'}, 400
+        # if data['oldpassword'] != user.password:
+        #     return {'message': 'Wrong password!'}, 400
 
         if data['password'] == user.password:
             return {'message': 'New password cannot be the same as the old password'}, 400

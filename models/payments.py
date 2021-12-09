@@ -10,9 +10,9 @@ class PaymentsModel(db.Model):
 
     __tablename__ = "payments"
 
-    pid = db.Column(db.String(6), primary_key=True)
-    oid = db.Column(db.String(), db.ForeignKey('orders.oid'))
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id'))
+    pid = db.Column(db.Integer(), primary_key=True)
+    oid = db.Column(db.Integer())
+    user_id = db.Column(db.Integer())
     email = db.Column(db.String())
     phonenumber = db.Column(db.String())
     plan_id = db.Column(db.Integer())

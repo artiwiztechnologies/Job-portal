@@ -28,12 +28,12 @@ class ApplicationsModel(db.Model):
     __tablename__ = "applications"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer())
     user_name = db.Column(db.String)
-    user_email = db.Column(db.String(), db.ForeignKey('users.email'))
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'))
+    user_email = db.Column(db.String())
+    job_id = db.Column(db.Integer())
     company_name = db.Column(db.String())
-    company_id = db.Column(db.Integer(), db.ForeignKey('company.id'))
+    company_id = db.Column(db.Integer())
     status = db.Column(db.String(), default="applied")
     date = db.Column(db.String, default=str(
         datetime.datetime.now()).split(' ')[0])

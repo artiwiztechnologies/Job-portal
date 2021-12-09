@@ -44,6 +44,7 @@ class UserModel(db.Model):
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
     otp = db.Column(db.String(6))
     plan_id = db.Column(db.Integer())
+    trial_availed = db.Column(db.Boolean(), default=False)
 
     photoURL = db.Column(db.String(100), default="abcd")
     profession = db.Column(db.String())
@@ -187,12 +188,10 @@ class UserModel(db.Model):
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
 
-
         message = MIMEMultipart("alternative")
         message["Subject"] = "Reset password."
         message["From"] = sender_email
         message["To"] = receiver_email
-
 
         try:
             num = phonenumber[:2]+"******"+phonenumber[-2:]

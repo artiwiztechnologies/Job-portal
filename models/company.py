@@ -37,6 +37,7 @@ class CompanyModel(db.Model):
     dateTime = db.Column(db.DateTime, default=datetime.datetime.now())
     otp = db.Column(db.String(6))
     plan_id = db.Column(db.Integer())
+    trial_availed = db.Column(db.Boolean(), default=False)
 
     photoURL = db.Column(db.String(), default="abcd")
     location = db.Column(db.String())
@@ -80,6 +81,24 @@ class CompanyModel(db.Model):
             'active': self.active,
             'type': self.__tablename__,
             'expiry_date': self.expiry_date
+        }
+
+    def json_for_admin(self):
+
+        if self.status == 2:
+            STATUS = 'Active'
+        elif self.status == 1:
+            STATUS = 'Inactive'
+
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phonenumber': self.phonenumber,
+            'email': self.email,
+            'expiry_date': self.expiry_date[:10] if self.expiry_date else "-",
+            'plan_id': self.plan_id if self.plan_id else "-",
+            'status': STATUS,
+            'subs': "Subscribed" if self.plan_id else "Not subscribed"
         }
 
     def send_verification_email(self, receiver_email, token):
@@ -127,6 +146,10 @@ class CompanyModel(db.Model):
     @classmethod
     def find_count(cls):
         return cls.query.count()
+
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
 

@@ -1,6 +1,8 @@
 from models.applications import ApplicationsModel
 from models.jobs import JobsModel
 from models.favorites import FavoritesModel
+from models.comments import CommentsModel
+
 
 class Helper():
 
@@ -37,4 +39,9 @@ class Helper():
     def del_favorites_by_job(job_id):
         for favorite in FavoritesModel.find_by_job_id(job_id):
             favorite.delete_from_db()
+        return
+
+    def del_comments_by_question(question_id):
+        for comment in CommentsModel.find_by_question_id(question_id):
+            comment.delete_from_db()
         return
