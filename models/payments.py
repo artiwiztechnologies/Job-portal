@@ -21,7 +21,7 @@ class PaymentsModel(db.Model):
     razorpay_order_id = db.Column(db.String())
     razorpay_signature = db.Column(db.String())
 
-    def __init__(self, pid, oid, user_id, email, plan_id, phonenumber, user_type, razorpay_payment_id, razorpay_order_id, razorpay_signature):
+    def __init__(self, pid, oid, user_id, email, plan_id, phonenumber, user_type):
 
         self.pid = pid
         self.oid = oid
@@ -30,8 +30,8 @@ class PaymentsModel(db.Model):
         self.plan_id = plan_id
         self.phonenumber = phonenumber
         self.user_type = user_type
-        self.razorpay_payment_id = razorpay_payment_id
-        self.razorpay_order_id = razorpay_order_id
+        # self.razorpay_payment_id = razorpay_payment_id
+        # self.razorpay_order_id = razorpay_order_id
 
     def json(self):
 
@@ -48,9 +48,7 @@ class PaymentsModel(db.Model):
             'email': self.email,
             'phonenumber': self.phonenumber,
             'amount': order.amount/100,
-            'status': order.status,
-            'razorpay_payment_id': self.razorpay_payment_id,
-            'razorpay_order_id': self.razorpay_order_id
+            'status': order.status
         }
 
     def save_to_db(self):

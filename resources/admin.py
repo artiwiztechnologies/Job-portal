@@ -126,6 +126,87 @@ class SendMetrics(Resource):
         except:
             return {'message': 'Error'}, 500
 
+class getUnapprovedUsers(Resource):
+    
+    @jwt_required
+    def get(self):
+        admin_id = get_jwt_identity()
+        admin = AdminModel.find_by_id(admin_id)
+
+        if admin.__tablename__ != "admin":
+            return {'message': 'Not an admin'}
+        try:
+
+            users = [user.json() for user in UserModel.find_unapproved_users()]
+            return {'users': users}, 200
+        
+        except:
+            return {'message': 'Error'}, 500
+
+class getUnapprovedCompanies(Resource):
+    
+    @jwt_required
+    def get(self):
+        admin_id = get_jwt_identity()
+        admin = AdminModel.find_by_id(admin_id)
+
+        if admin.__tablename__ != "admin":
+            return {'message': 'Not an admin'}
+        try:
+
+            companies = [company.json() for company in CompanyModel.find_unapproved_companies()]
+            return {'companies': companies}, 200
+        
+        except:
+            return {'message': 'Error'}, 500
+
+class ApproveUser(Resource):
+
+    @jwt_required
+    def get(self, id):
+        admin_id = get_jwt_identity()
+        admin = AdminModel.find_by_id(admin_id)
+
+        if admin.__tablename__ != "admin":
+            return {'message': 'Not an admin'}, 401
+
+        user = UserModel.find_by_id(id)
+
+        if not user:
+            return {'message': "User not found."}, 404
+
+        if user.status == 2:
+            return {'message': 'User already approved.'}, 400
+
+
+        user.status = 2
+        user.save_to_db()
+
+        return {'message': 'User approved.'}, 200
+
+class ApproveCompany(Resource):
+
+    @jwt_required
+    def get(self, id):
+        admin_id = get_jwt_identity()
+        admin = AdminModel.find_by_id(admin_id)
+
+        if admin and admin.__tablename__ != "admin":
+            return {'message': 'Not an admin'}, 401
+
+        company = CompanyModel.find_by_id(id)
+
+        if not company:
+            return {'message': "Company not found."}, 404
+
+        if company.status == 2:
+            return {'message': 'Company already approved.'}, 400
+
+
+        company.status = 2
+        company.save_to_db()
+
+        return {'message': 'Company approved.'}, 200
 
 # class AdminData(Resource):
 

@@ -27,7 +27,7 @@ client = razorpay.Client(
     auth=(key_id, key_secret))
 
 
-class newOrder(Resource):
+class newOrderOld(Resource):
 
     @jwt_required
     def post(self):

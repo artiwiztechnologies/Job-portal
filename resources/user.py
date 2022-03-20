@@ -7,7 +7,6 @@ from random import randrange
 
 from flask import request, jsonify, send_file, send_from_directory, url_for, redirect, render_template
 from werkzeug.utils import secure_filename
-import os
 import re
 import json
 
@@ -127,7 +126,7 @@ class UserRegister(Resource):
             user.status = data['status']
             user.password = data['password']
             user.save_to_db()
-            user.send_verification_email(data['email'], token)
+            user.send_verification_email(user, token)
 
             return {"message": "User created successfully."}, 200
 
@@ -138,7 +137,7 @@ class emailVerification(Resource):
             email = s.loads(token, salt='email-confirm', max_age=300)
             user = UserModel.find_by_email(email)
 
-            user.status = 2
+            user.status = 8
             user.save_to_db()
 
         except SignatureExpired:
@@ -159,7 +158,7 @@ class resendEmail(Resource):
         if not user:
             return {'message': "User not found!"}, 400
         token = s.dumps(user.email, salt='email-confirm')
-        user.send_verification_email(user.email, token)
+        user.send_verification_email(user, token)
 
         return {'message': 'Verification mail sent!'}, 200
 
@@ -525,9 +524,13 @@ class UserLogin(Resource):
 
                     user.save_to_db()
                     print(user.id)
-                    user.send_verification_email(user.email, token)
+                    user.send_verification_email(user, token)
 
                     return{"message": "Account not verified", "status": user.status, "id": user.id}, 401
+                
+                elif(user.status == 8):
+                    return{"message": "Waiting for admin approval.", "status": user.status, "id": user.id}, 401
+
             return {"message": "Invalid Credentials!"}, 401
         return {"message": "User not found!", "status": 0}, 404
 
@@ -654,11 +657,15 @@ class getUserFavorites(Resource):
 class CheckUser(Resource):
 
     @jwt_required
-    def get(self):
+    def get(self, user_type):
 
         user_id = get_jwt_identity()
 
-        user = UserModel.find_by_id(user_id)
+        if user_type == "users":
+            user = UserModel.find_by_id(user_id)
+        else:
+            user = CompanyModel.find_by_id(user_id)
+        
 
         if not user:
             return {'message': 'No such user.'}, 404
@@ -672,6 +679,10 @@ class CheckUser(Resource):
             print(user.expiry_date, today)
 
             d = user.expiry_date
+            if d =="":
+                user.active = False
+                user.save_to_db()
+                return {'status': user.status, 'active': user.active, 'days': '', 'plan_name': ""}, 200
             d1 = datetime.date(int(d[:4]), int(d[5:7]), int(d[8:10]))
             d2 = datetime.date(int(today[:4]), int(
                 today[5:7]), int(today[8:10]))
@@ -685,8 +696,11 @@ class CheckUser(Resource):
 
         if user.active:
             plan = PlansModel.find_by_id(user.plan_id)
+            if not plan:
+                return {'status': user.status, 'active': user.active, 'days': delta.days, "plan_name": "Plan deleted."}, 200
+
             return {'status': user.status, 'active': user.active, 'days': delta.days, "plan_name": plan.plan_name}, 200
-        return {'status': user.status, 'active': user.active}, 200
+        return {'status': user.status, 'active': user.active, 'days': 'Expired', 'plan_name': ""}, 200
 
 
 class ExpireUser(Resource):

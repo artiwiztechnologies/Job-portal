@@ -1,8 +1,51 @@
-from random import randrange
+# import checksum generation utility
+import json
+from paytmchecksum import PaytmChecksum 
+mid = "fLioeq85351493665452"
+key = "uqBbUrOfGQyXVqRE"
 
-num = randrange(100000, 1000000)
+# string we need to verify against checksum
+# body = "{"\ mid\":"\YOUR_MID_HERE\","\orderId\":"\YOUR_ORDER_ID_HERE\"}"
 
-print(num)
+# body = {
+#   "mid": mid,
+#   "orderId": "6744580680787",
+# }
+
+paytmParams = dict()
+
+paytmParams["body"] = {
+    "requestType"   : "Payment",
+    "mid"           : mid,
+    "websiteName"   : "DEFAULT",
+    "orderId"       : "6401525851463",
+    "txnAmount"     : {
+        "value"     : "1.00",
+        "currency"  : "INR",
+    },
+    "userInfo"      : {
+        "custId"    : "CUST_1",
+    },
+}
+
+#checksum that we need to verify
+paytmChecksum = "fJwEvRfZEIh1nqda25mfW2DEf9cP3/FTwEwCE1n1EFNdCKYQFj0QaoMftA3aZnES+zYZEdv0LpW/aXofv0J2v3DQXreI+ItPFJp2A5IGKTk="
+
+# Verify checksum
+# Find your Merchant Key in your Paytm Dashboard at https://dashboard.paytm.com/next/apikeys 
+
+isVerifySignature = PaytmChecksum.verifySignature(json.dumps(paytmParams['body']), key, paytmChecksum)
+if isVerifySignature:
+	print("Checksum Matched")
+else:
+	print("Checksum Mismatched")
+
+
+# from random import randrange
+
+# num = randrange(100000, 1000000)
+
+# print(num)
 
 # import datetime
 

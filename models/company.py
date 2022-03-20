@@ -2,7 +2,7 @@ from db import db
 import datetime
 import requests
 from flask import Flask, request, url_for
-
+import json
 from templates.email import Email
 from templates.otp import OTP_email
 
@@ -29,7 +29,7 @@ class CompanyModel(db.Model):
     phonenumber = db.Column(db.String())
     email = db.Column(db.String())
     password = db.Column(db.String())
-    active = db.Column(db.Boolean(), default=True)
+    active = db.Column(db.Boolean(), default=True) # to be changed afterwards
     subscription_id = db.Column(db.String())
     expiry_date = db.Column(db.String())
     created_date = db.Column(db.String())
@@ -101,14 +101,43 @@ class CompanyModel(db.Model):
             'subs': "Subscribed" if self.plan_id else "Not subscribed"
         }
 
-    def send_verification_email(self, receiver_email, token):
+    def send_verification_email(self, company, token):
 
         link = url_for('companyemailverification', token=token, _external=True)
+
+        # print(link)
+
+        # body = {
+        #         "to": [
+        #         {
+        #         "name": company.name,
+        #         "email": company.email
+        #         }
+        #         ],
+        #         "from": {
+        #             "name": "Textile Jobs",
+        #             "email": "noreply@mail.jobstextile.com"
+        #         },
+
+        #         "domain": "mail.jobstextile.com",
+        #         "mail_type_id": 3,
+
+        #         "template_id": "Email-Confirmation",
+        #         "variables": {
+        #             "VAR1": link
+        #         },
+        #         "authkey": "368863A1EOG1DR61766562P1"
+        #     }
+
+        # url = "https://api.msg91.com/api/v5/email/send"
+
+        # response = requests.post(url, data = json.dumps(body), headers = {"Content-type": "application/json", 'Accept': 'application/json'}).json()
+
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "Jobs Textile - Verfication email."
         message["From"] = sender_email
-        message["To"] = receiver_email
+        message["To"] = company.email
 
         html = Email._email(link)
 
@@ -120,7 +149,7 @@ class CompanyModel(db.Model):
         with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
             server.login(sender_email, password)
             server.sendmail(
-                sender_email, receiver_email, message.as_string()
+                sender_email, company.email, message.as_string()
             )
 
     def save_to_db(self):
@@ -150,6 +179,10 @@ class CompanyModel(db.Model):
     @classmethod
     def find_all(cls):
         return cls.query.all()
+
+    @classmethod
+    def find_unapproved_companies(cls):
+        return cls.query.filter_by(status=8)
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
 

@@ -116,10 +116,10 @@ class CompanyRegister(Resource):
 
             company = CompanyModel(data['email'], data['phonenumber'], data['name'], data['location'],
                                    data['status'], data['companySize'], data['about'], data['links'], data['established'], data['companyType'])
-            company.status = data['status']
+            company.status = 1
             company.password = data['password']
             company.save_to_db()
-            company.send_verification_email(data['email'], token)
+            company.send_verification_email(company, token)
 
             return {"message": "Company created successfully."}, 201
 
@@ -129,7 +129,7 @@ class companyemailVerification(Resource):
         try:
             email = s.loads(token, salt='email-confirm', max_age=300)
             company = CompanyModel.find_by_companyemail(email)
-            company.status = 2
+            company.status = 8
             company.save_to_db()
         except SignatureExpired:
             return '<h1>The token is expired!</h1>'
@@ -142,7 +142,7 @@ class resendCompanyEmail(Resource):
         if not company:
             return {'message': 'Company not found!!'}, 400
         token = s.dumps(company.email, salt='email-confirm')
-        company.send_verification_email(company.email, token)
+        company.send_verification_email(company, token)
 
         return {'message': 'Verification mail sent!'}, 200
 
@@ -293,25 +293,26 @@ class Company(Resource):
     def get(self, id):
         company = CompanyModel.find_by_id(id)
         if not company:
-            return {'message': 'User Not Found'}, 404
+            return {'message': 'Company Not Found'}, 404
         return company.json(), 200
 
     @jwt_required
     def delete(self, id):
         company = CompanyModel.find_by_id(id)
         if not company:
-            return {'message': 'User Not Found'}, 404
+            return {'message': 'Company Not Found'}, 404
 
         Helper.del_applications_by_company(id)
         Helper.del_jobs_by_company(id)
+        Helper.del_products_by_company(id)
         company.delete_from_db()
-        return {'message': 'User deleted.'}, 200
+        return {'message': 'Company deleted.'}, 200
 
     @jwt_required
     def put(self, id):
         data = Company._company_parser.parse_args()
         if not CompanyModel.find_by_id(id):
-            return {'message': 'User not found.'}, 404
+            return {'message': 'Company not found.'}, 404
         company = CompanyModel.find_by_id(id)
 
         # print(company.com)
@@ -472,9 +473,14 @@ class CompanyLogin(Resource):
                     token = s.dumps(company.email, salt='email-confirm')
 
                     company.save_to_db()
-                    company.send_verification_email(company.email, token)
+                    company.send_verification_email(company, token)
 
                     return{"message": "Account not verified", "status": company.status, "id": company.id}, 401
+                elif(company.status == 8):
+
+                    return{"message": "Waiting for admin approval.", "status": company.status, "id": company.id}, 401
+
+            
             return {"message": "Invalid Credentials!"}, 401
         return {"message": "Company not found!", "status": 0}, 404
 

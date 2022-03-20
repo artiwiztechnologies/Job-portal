@@ -2,6 +2,7 @@ from db import db
 import datetime
 import requests
 from flask import Flask, request, url_for, render_template
+import json
 
 from templates.email import Email
 from templates.otp import OTP_email
@@ -161,30 +162,44 @@ class UserModel(db.Model):
     def find_count(cls):
         return cls.query.count()
 
-    def send_verification_email(self, receiver_email, token):
+    @classmethod
+    def find_unapproved_users(cls):
+        return cls.query.filter_by(status=8)
+
+    def send_verification_email(self, user, token):
 
         link = url_for('emailverification', token=token, _external=True)
 
-        message = MIMEMultipart("alternative")
-        message["Subject"] = "Verfication email."
-        message["From"] = sender_email
-        message["To"] = receiver_email
+        print(link)
 
-        html = Email._email(link)
+        body = {
+                "to": [
+                {
+                "name": user.name,
+                "email": user.email
+                }
+                ],
+                "from": {
+                    "name": "Textile Jobs",
+                    "email": "noreply@mail.jobstextile.com"
+                },
 
-        part2 = MIMEText(html, "html")
+                "domain": "mail.jobstextile.com",
+                "mail_type_id": 3,
 
-        message.attach(part2)
+                "template_id": "Email-Confirmation",
+                "variables": {
+                    "VAR1": link
+                },
+                "authkey": "368863A1EOG1DR61766562P1"
+            }
 
-        # message = render_template("verification_email.html")
+        url = "https://api.msg91.com/api/v5/email/send"
 
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.hostinger.in", 465, context=context) as server:
-            # server.starttls(context=context)
-            server.login(sender_email, password)
-            server.sendmail(
-                sender_email, receiver_email, message.as_string()
-            )
+        response = requests.post(url, data = json.dumps(body), headers = {"Content-type": "application/json", 'Accept': 'application/json'}).json()
+
+        print (response)
+
 
     def send_otp_email(self, otp, receiver_email, phonenumber):
 

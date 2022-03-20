@@ -2,6 +2,7 @@ from models.applications import ApplicationsModel
 from models.jobs import JobsModel
 from models.favorites import FavoritesModel
 from models.comments import CommentsModel
+from models.products import ProductModel
 
 
 class Helper():
@@ -43,5 +44,15 @@ class Helper():
 
     def del_comments_by_question(question_id):
         for comment in CommentsModel.find_by_question_id(question_id):
+            comment.delete_from_db()
+        return
+
+    def del_products_by_company(company_id):
+        for product in ProductModel.find_by_companyid(company_id):
+            product.delete_from_db()
+        return
+
+    def del_blog_comments_by_blog(blog_id):
+        for comment in BlogCommentsModel.find_by_blog_id(blog_id):
             comment.delete_from_db()
         return

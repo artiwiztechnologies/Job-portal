@@ -7,14 +7,14 @@ class OrdersModel(db.Model):
 
     __tablename__ = "orders"
 
-    oid = db.Column(db.String(6), primary_key=True)
+    oid = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer())
     email = db.Column(db.String())
     user_type = db.Column(db.String())
     plan_id = db.Column(db.Integer())
     # _type = db.Column(db.String())
 
-    order_id = db.Column(db.String())
+    order_id = db.Column(db.String(15))
     entity = db.Column(db.String())
     amount = db.Column(db.Integer())
     amount_paid = db.Column(db.Integer())
@@ -25,28 +25,31 @@ class OrdersModel(db.Model):
     status = db.Column(db.String())
     attempts = db.Column(db.Integer())
     created_at = db.Column(db.Integer())
+    checksumhash = db.Column(db.String())
+
+    # db.UniqueConstraint(order_id)
 
     # offer_id, notes, plan_id not stored in db.
 
-    def __init__(self, oid, user_id, email, user_type, id, entity, amount, amount_paid, amount_due, currency, receipt, status, attempts, created_at, offer_id, notes, plan_id):
+    def __init__(self, oid, user_id, email, user_type, amount, currency, status, plan_id, root, checksumhash):
 
-        self.oid = oid
         self.user_id = user_id
         self.email = email
         self.user_type = user_type
         self.plan_id = plan_id
 
-        self.order_id = id
-        self.entity = entity
+        self.order_id = oid
+        # self.entity = entity
         self.amount = amount
-        self.amount_paid = amount_paid
-        self.amount_due = amount_due
+        self.checksumhash = checksumhash
+        # self.amount_paid = amount_paid
+        # self.amount_due = amount_due
         self.currency = currency
-        self.receipt = receipt
+        # self.receipt = receipt
         # self.offer_id = offer_id
         self.status = status
-        self.attempts = attempts
-        self.created_at = created_at
+        # self.attempts = attempts
+        # self.created_at = created_at
 
     def json(self):
 
@@ -58,15 +61,15 @@ class OrdersModel(db.Model):
             'plan_id': self.plan_id,
 
             "order_id": self.order_id,
-            "entity": self.entity,
-            "amount": self.amount/100,
-            "amount_paid": self.amount_paid/100,
-            "amount_due": self.amount_due/100,
+            # "entity": self.entity,
+            "amount": self.amount,
+            # "amount_paid": self.amount_paid/100,
+            # "amount_due": self.amount_due/100,
             "currency": self.currency,
-            "receipt": self.receipt,
+            # "receipt": self.receipt,
             "status": self.status,
-            "attempts": self.attempts,
-            "created_at": self.created_at
+            # "attempts": self.attempts,
+            # "created_at": self.created_at
         }
 
     def save_to_db(self):
