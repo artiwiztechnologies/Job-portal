@@ -22,6 +22,7 @@
 # conn.close()
 
 import json
+import os
 import paho.mqtt.client as mqtt
 import sqlite3
 from datetime import datetime
@@ -32,7 +33,10 @@ import random
 
 
 
-MQTT_SERVER = "broker.hivemq.com"
+MQTT_SERVER = os.environ["MQTT_SERVER"]
+MQTT_PORT = int(os.getenv("MQTT_PORT", "8883"))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_PATH1 = "/lora/temp"
 MQTT_PATH2 = "/zed/barcode"
 MQTT_PATH3 = "/zed/validate/nfc"
@@ -79,8 +83,8 @@ def on_publish(client,userdata,result):             #create function for callbac
     print("data published \n")
     pass
 # The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+def on_connect(client, userdata, flags, reason_code, properties):
+    print("Connected with result code "+str(reason_code))
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
@@ -243,11 +247,14 @@ def on_message(client, userdata, msg):
 
 
 
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.on_message = on_message
+client.tls_set()
+if MQTT_USERNAME:
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
-client.connect(MQTT_SERVER, 1883, 60)
+client.connect(MQTT_SERVER, MQTT_PORT, 60)
 
 
 client.loop_forever()

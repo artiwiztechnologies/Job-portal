@@ -1,5 +1,6 @@
 from db import db
 import datetime
+import os
 import requests
 
 
@@ -38,7 +39,16 @@ class UserModel(db.Model):
         db.session.commit()
 
     def send_otp(self):
-        requests.get("http://trans.smsfresh.co/api/sendmsg.php?user=hkartthik97&pass=123456&sender=ARTOTP&phone={}&text=Your verfication code is:{} Dont share this code with anyone.&priority=ndnd&stype=normal".format(self.phonenumber,self.tempotp))
+        params = {
+            "user": os.getenv("SMSFRESH_USER"),
+            "pass": os.getenv("SMSFRESH_PASSWORD"),
+            "sender": "ARTOTP",
+            "phone": self.phonenumber,
+            "text": "Your verfication code is:{} Dont share this code with anyone.".format(self.tempotp),
+            "priority": "ndnd",
+            "stype": "normal"
+        }
+        requests.get(os.getenv("SMSFRESH_API_URL", "https://trans.smsfresh.co/api/sendmsg.php"), params=params, timeout=10)
 
 
     @classmethod
