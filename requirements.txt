@@ -20,7 +20,7 @@ PyJWT==1.4.2
 python-decouple==3.4
 python-dotenv==0.19.0
 pytz==2021.1
-requests==2.26.0
+requests==2.31.0
 six==1.16.0
 SQLAlchemy==1.4.21
 typing-extensions==3.10.0.0
